@@ -2,15 +2,25 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>Кибер-глаз с улыбками</title>
+  <title>Кибер-глаз</title>
   <style>
     html, body {
-      height: 100%;
       margin: 0;
       padding: 0;
-      background: black;
+      height: 100%;
       overflow: hidden;
+      background: black;
     }
+
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
+
     #scene-container {
       position: absolute;
       top: 50%;
@@ -18,34 +28,32 @@
       width: 400px;
       height: 400px;
       transform: translate(-50%, -50%);
+      z-index: 1;
+      background: rgba(0, 0, 0, 0.4);
+      border: 2px solid rgba(255, 0, 0, 0.2);
+      box-shadow: 0 0 40px rgba(255, 0, 0, 0.3);
       pointer-events: none;
     }
-    #matrix-canvas {
-      position: fixed;
-      top: 0;
-      left: 0;
-      display: block;
-      width: 100vw;
-      height: 100vh;
-      z-index: 0;
-    }
+
     #scene-container canvas {
       display: block;
     }
+
     .smile {
       position: absolute;
       width: 60px;
       opacity: 0;
       transition: opacity 0.6s ease;
       pointer-events: none;
-      z-index: 1;
+      z-index: 2;
     }
   </style>
 </head>
 <body>
   <canvas id="matrix-canvas"></canvas>
+
   <div id="scene-container">
-    <!-- улыбки -->
+    <!-- Появляющиеся "улыбки" -->
     <img src="images.png" class="smile" style="top: 0; left: 0;" />
     <img src="images.png" class="smile" style="top: 0; right: 0; transform: scaleX(-1);" />
     <img src="images.png" class="smile" style="bottom: 0; left: 0;" />
