@@ -22,30 +22,23 @@ const render = Render.create({
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
-// Сплюснутый глаз (эллипс)
-const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
-  Array.from({ length: 60 }, (_, i) => {
-    const angle = (Math.PI * 2 * i) / 60;
-    const x = Math.cos(angle) * 100;
-    const y = Math.sin(angle) * 60;
-    return { x, y };
-  })
-], {
+// Круглый глаз
+const outerEye = Bodies.circle(centerX, centerY, 100, {
   isStatic: true,
   render: {
-    fillStyle: "#000000",     // Чёрный глаз
-    strokeStyle: "#ff0000",   // Ярко-красная обводка
+    fillStyle: "#000000",       // Чёрный глаз
+    strokeStyle: "#ff0000",     // Ярко-красная обводка
     lineWidth: 4,
-    shadowColor: "#ff0000",   // Ярко-красная тень
-    shadowBlur: 40            // Более сильное свечение
+    shadowColor: "#ff0000",     // Тень
+    shadowBlur: 40
   }
-}, true);
+});
 
-// Зрачок — яркий красный
+// Красный зрачок
 const pupil = Bodies.circle(centerX, centerY, 20, {
   isStatic: true,
   render: {
-    fillStyle: "#ff0000"      // Ярко-красный зрачок
+    fillStyle: "#ff0000"        // Ярко-красный зрачок
   }
 });
 
@@ -65,7 +58,7 @@ window.addEventListener("mousemove", (e) => {
   Body.setPosition(pupil, { x, y });
 });
 
-// Добавим чёрную вертикальную линию в зрачке
+// Чёрная вертикальная линия в зрачке
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
   ctx.save();
