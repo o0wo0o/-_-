@@ -33,8 +33,8 @@ const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
 ], {
   isStatic: true,
   render: {
-    fillStyle: "#111",
-    strokeStyle: "#ff0000",
+    fillStyle: "#000000",
+    strokeStyle: "#ff0044",
     lineWidth: 4
   }
 }, true);
@@ -43,7 +43,7 @@ const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
 const pupil = Bodies.circle(centerX, centerY, 20, {
   isStatic: true,
   render: {
-    fillStyle: "#ff0000"
+    fillStyle: "#ff0044"
   }
 });
 
