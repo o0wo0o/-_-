@@ -4,11 +4,31 @@
     <meta charset="utf-8" />
     <title>Matter.js Demo</title>
     <style>
-      body { margin: 0; }
-      canvas { display: block; }
+      html, body {
+        height: 100%;
+        margin: 0;
+        padding: 0;
+      }
+      body {
+        width: 100vw;
+        height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #fafafa;
+      }
+      #scene-container {
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      canvas {
+        display: block;
+      }
     </style>
   </head>
   <body>
+    <div id="scene-container"></div>
     <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
     <script src="script.js"></script>
   </body>
