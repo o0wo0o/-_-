@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>0w0</title>
+  <title>Кибер-глаз с улыбками</title>
   <style>
     html, body {
       height: 100%;
@@ -11,36 +11,49 @@
       background: black;
       overflow: hidden;
     }
-
     #scene-container {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 400px;
+      height: 400px;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
+    }
+    #matrix-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      display: block;
       width: 100vw;
       height: 100vh;
-      position: relative;
+      z-index: 0;
     }
-
-    canvas {
+    #scene-container canvas {
       display: block;
     }
-
     .smile {
       position: absolute;
       width: 60px;
       opacity: 0;
       transition: opacity 0.6s ease;
       pointer-events: none;
+      z-index: 1;
     }
   </style>
 </head>
 <body>
+  <canvas id="matrix-canvas"></canvas>
   <div id="scene-container">
-    <!-- Улыбки (позиции можно менять по вкусу) -->
-    <img src="images.png" class="smile" style="top: 10%; left: 5%;" />
-    <img src="images.png" class="smile" style="bottom: 10%; right: 5%; transform: scaleX(-1);" />
-    <img src="images.png" class="smile" style="top: 70%; left: 60%;" />
-    <img src="images.png" class="smile" style="top: 30%; right: 20%; transform: scaleX(-1);" />
+    <!-- улыбки -->
+    <img src="images.png" class="smile" style="top: 0; left: 0;" />
+    <img src="images.png" class="smile" style="top: 0; right: 0; transform: scaleX(-1);" />
+    <img src="images.png" class="smile" style="bottom: 0; left: 0;" />
+    <img src="images.png" class="smile" style="bottom: 0; right: 0; transform: scaleX(-1);" />
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
+  <script src="matrix.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
