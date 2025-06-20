@@ -1,4 +1,4 @@
-const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
+const { Engine, Render, Runner, Bodies, World, Body, Events, Vertices } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -100,8 +100,18 @@ function showLinks() {
   nextLink();
 }
 
+// Функция разрезания глаза на полукруги
 function splitEye() {
-  const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
+  const radius = 100;
+
+  // Левая половина - полукруг слева (от 90° до 270°)
+  const leftVertices = Vertices.arc(centerX, centerY, radius, Math.PI / 2, Math.PI * 3 / 2, 20).reverse();
+
+  // Правая половина - полукруг справа (от -90° до 90°)
+  const rightVertices = Vertices.arc(centerX, centerY, radius, -Math.PI / 2, Math.PI / 2, 20);
+
+  // Создаем тела из полукругов
+  const leftHalf = Bodies.fromVertices(centerX - 1, centerY, [leftVertices], {
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -109,9 +119,9 @@ function splitEye() {
       shadowColor: "#ff0000",
       shadowBlur: 40
     }
-  });
+  }, true);
 
-  const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
+  const rightHalf = Bodies.fromVertices(centerX + 1, centerY, [rightVertices], {
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -119,14 +129,15 @@ function splitEye() {
       shadowColor: "#ff0000",
       shadowBlur: 40
     }
-  });
+  }, true);
 
-  Body.setVelocity(halfLeft, { x: -2, y: 5 });
-  Body.setAngularVelocity(halfLeft, -0.2);
-  Body.setVelocity(halfRight, { x: 2, y: 5 });
-  Body.setAngularVelocity(halfRight, 0.2);
+  Body.setVelocity(leftHalf, { x: -2, y: 5 });
+  Body.setAngularVelocity(leftHalf, -0.2);
 
-  World.add(world, [halfLeft, halfRight]);
+  Body.setVelocity(rightHalf, { x: 2, y: 5 });
+  Body.setAngularVelocity(rightHalf, 0.2);
+
+  World.add(world, [leftHalf, rightHalf]);
 
   setTimeout(showLinks, 1200);
 }
@@ -234,7 +245,7 @@ Events.on(render, "afterRender", () => {
       drawFlash(alpha);
     }
 
-    return; // отключаем эффекты зрачка
+    return; // отключаем эффекты зрачка во время и после разрезания
   }
 
   // Пульсация зрачка
