@@ -36,7 +36,7 @@ const outerEye = Bodies.circle(centerX, centerY, 100, {
 const pupil = Bodies.circle(centerX, centerY, 20, {
   isStatic: true,
   render: {
-    fillStyle: "#00aaff"
+    fillStyle: "#ff0000"
   }
 });
 
