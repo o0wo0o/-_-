@@ -1,4 +1,4 @@
-const { Engine, Render, Runner, Bodies, World, Body, Events, Vertices } = Matter;
+const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -101,15 +101,8 @@ function showLinks() {
 }
 
 function splitEye() {
-  const radius = 100;
-
-  // Вершины левой половины относительно 0,0 (полукруг слева)
-  const leftVertices = Vertices.arc(0, 0, radius, Math.PI / 2, Math.PI * 3 / 2, 20).reverse();
-
-  // Вершины правой половины относительно 0,0 (полукруг справа)
-  const rightVertices = Vertices.arc(0, 0, radius, -Math.PI / 2, Math.PI / 2, 20);
-
-  const leftHalf = Bodies.fromVertices(centerX - 1, centerY, [leftVertices], {
+  // Левая трапеция (широкая у центра, узкая у края)
+  const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -117,9 +110,10 @@ function splitEye() {
       shadowColor: "#ff0000",
       shadowBlur: 40
     }
-  }, true);
+  });
 
-  const rightHalf = Bodies.fromVertices(centerX + 1, centerY, [rightVertices], {
+  // Правая трапеция
+  const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -127,20 +121,19 @@ function splitEye() {
       shadowColor: "#ff0000",
       shadowBlur: 40
     }
-  }, true);
+  });
 
-  Body.setVelocity(leftHalf, { x: -2, y: 5 });
-  Body.setAngularVelocity(leftHalf, -0.2);
+  Body.setVelocity(halfLeft, { x: -2, y: 5 });
+  Body.setAngularVelocity(halfLeft, -0.2);
 
-  Body.setVelocity(rightHalf, { x: 2, y: 5 });
-  Body.setAngularVelocity(rightHalf, 0.2);
+  Body.setVelocity(halfRight, { x: 2, y: 5 });
+  Body.setAngularVelocity(halfRight, 0.2);
 
-  World.add(world, [leftHalf, rightHalf]);
+  World.add(world, [halfLeft, halfRight]);
 
   setTimeout(showLinks, 1200);
 }
 
-// Эффекты линии разреза и вспышки
 const cutDuration = 300;
 const flashDuration = 150;
 let cutEffectActive = false;
