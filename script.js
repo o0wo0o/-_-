@@ -1,4 +1,4 @@
-const { Engine, Render, Runner, Bodies, World, Body } = Matter;
+const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -22,13 +22,12 @@ const render = Render.create({
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
-// Внешняя оболочка глаза
 // Сплюснутый глаз (эллипс)
 const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
   Array.from({ length: 60 }, (_, i) => {
     const angle = (Math.PI * 2 * i) / 60;
     const x = Math.cos(angle) * 100; // ширина
-    const y = Math.sin(angle) * 60;  // высота (сжатие по вертикали)
+    const y = Math.sin(angle) * 60;  // высота
     return { x, y };
   })
 ], {
@@ -40,8 +39,7 @@ const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
   }
 }, true);
 
-
-// Зрачок
+// Красный зрачок
 const pupil = Bodies.circle(centerX, centerY, 20, {
   isStatic: true,
   render: {
@@ -51,7 +49,7 @@ const pupil = Bodies.circle(centerX, centerY, 20, {
 
 World.add(world, [outerEye, pupil]);
 
-// Движение зрачка за курсором
+// Зрачок следует за мышью
 window.addEventListener("mousemove", (e) => {
   const rect = render.canvas.getBoundingClientRect();
   const mouseX = e.clientX - rect.left;
@@ -65,3 +63,15 @@ window.addEventListener("mousemove", (e) => {
   Body.setPosition(pupil, { x, y });
 });
 
+// Добавим вертикальную чёрную линию в центр зрачка
+Events.on(render, "afterRender", () => {
+  const ctx = render.context;
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 3;
+  ctx.moveTo(pupil.position.x, pupil.position.y - 15);
+  ctx.lineTo(pupil.position.x, pupil.position.y + 15);
+  ctx.stroke();
+  ctx.restore();
+});
