@@ -100,17 +100,15 @@ function showLinks() {
   nextLink();
 }
 
-// Функция разрезания глаза на полукруги
 function splitEye() {
   const radius = 100;
 
-  // Левая половина - полукруг слева (от 90° до 270°)
-  const leftVertices = Vertices.arc(centerX, centerY, radius, Math.PI / 2, Math.PI * 3 / 2, 20).reverse();
+  // Вершины левой половины относительно 0,0 (полукруг слева)
+  const leftVertices = Vertices.arc(0, 0, radius, Math.PI / 2, Math.PI * 3 / 2, 20).reverse();
 
-  // Правая половина - полукруг справа (от -90° до 90°)
-  const rightVertices = Vertices.arc(centerX, centerY, radius, -Math.PI / 2, Math.PI / 2, 20);
+  // Вершины правой половины относительно 0,0 (полукруг справа)
+  const rightVertices = Vertices.arc(0, 0, radius, -Math.PI / 2, Math.PI / 2, 20);
 
-  // Создаем тела из полукругов
   const leftHalf = Bodies.fromVertices(centerX - 1, centerY, [leftVertices], {
     render: {
       fillStyle: "#000000",
@@ -142,7 +140,7 @@ function splitEye() {
   setTimeout(showLinks, 1200);
 }
 
-// --- Эффекты линии разреза и вспышки ---
+// Эффекты линии разреза и вспышки
 const cutDuration = 300;
 const flashDuration = 150;
 let cutEffectActive = false;
