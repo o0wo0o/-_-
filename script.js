@@ -1,4 +1,4 @@
-const { Engine, Render, Runner, Bodies, World, Body, Events, Composite, Vertices, Vector } = Matter;
+const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -134,8 +134,8 @@ function splitEye() {
 
 // --- Эффекты линии разреза и вспышки ---
 
-const cutDuration = 300; // длительность линии разреза, мс
-const flashDuration = 150; // длительность вспышки, мс
+const cutDuration = 300; // длительность линии разреза в мс
+const flashDuration = 150; // длительность вспышки в мс
 let cutEffectActive = false;
 let cutEffectStartTime = 0;
 
@@ -148,10 +148,11 @@ function drawCutLine(progress) {
   ctx.shadowBlur = 20;
   ctx.lineCap = "round";
 
-  const startX = centerX - 80;
-  const startY = centerY - 80;
-  const endX = startX + 160 * progress;
-  const endY = startY + 160 * 0.4 * progress;
+  // Вертикальная линия посередине глаза сверху вниз
+  const startX = centerX;
+  const startY = centerY - 100; // верх круга глаза (радиус 100)
+  const endX = centerX;
+  const endY = startY + 200 * progress; // опускаем линию вниз
 
   ctx.beginPath();
   ctx.moveTo(startX, startY);
