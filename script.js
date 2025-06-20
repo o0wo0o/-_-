@@ -38,6 +38,10 @@ let pulse = 0, pulseDirection = 1;
 let glowTarget = 40, glowCurrent = 40;
 let mouseX = centerX, mouseY = centerY;
 
+// Загрузка картинки улыбки
+const smileImage = new Image();
+smileImage.src = 'images.png'; // путь к картинке
+
 window.addEventListener("mousemove", e => {
   const rect = render.canvas.getBoundingClientRect();
   mouseX = e.clientX - rect.left;
@@ -101,7 +105,6 @@ function showLinks() {
 }
 
 function splitEye() {
-  // Левая трапеция (широкая у центра, узкая у края)
   const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
     render: {
       fillStyle: "#000000",
@@ -112,7 +115,6 @@ function splitEye() {
     }
   });
 
-  // Правая трапеция
   const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
     render: {
       fillStyle: "#000000",
@@ -306,4 +308,18 @@ Events.on(render, "afterRender", () => {
       ctx.putImageData(imgData, dx, y);
     }
   }
+
+  // Рисуем улыбку при наведении мыши на глаз
+  const dx = mouseX - centerX;
+  const dy = mouseY - centerY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  if (dist <= 100 && smileImage.complete && !explosionTriggered && !cutEffectActive) {
+    const imgWidth = 120;
+    const imgHeight = 60;
+    const imgX = centerX - imgWidth / 2;
+    const imgY = centerY + 70; // немного ниже глаза
+    ctx.drawImage(smileImage, imgX, imgY, imgWidth, imgHeight);
+  }
 });
+
