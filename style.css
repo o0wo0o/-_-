@@ -1,0 +1,20 @@
+html, body {
+    margin: 0;
+    padding: 0;
+    overflow: hidden;
+    background: black;
+  }
+  
+  #scene-container {
+    width: 100vw;
+    height: 100vh;
+    position: relative;
+  }
+  
+  canvas {
+    position: absolute;
+    top: 0;
+    left: 0;
+    display: block;
+  }
+  

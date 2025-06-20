@@ -3,29 +3,63 @@ const { Engine, Render, Runner, World, Bodies } = Matter;
 const engine = Engine.create();
 const { world } = engine;
 
+const width = window.innerWidth;
+const height = window.innerHeight;
+
 const render = Render.create({
-  element: document.body,
+  element: document.getElementById("scene-container"),
   engine: engine,
   options: {
-    width: 800,
-    height: 600,
+    width,
+    height,
     wireframes: false,
-    background: '#fafafa',
-  }
+    background: "black",
+    pixelRatio: 1,
+  },
 });
 
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
-// Создаём землю
-const ground = Bodies.rectangle(400, 590, 810, 20, { isStatic: true });
+// Глитч-рамка
+const frameThickness = 30;
+const frameColor = "#00ffff";
+
+const borders = [
+  Bodies.rectangle(width / 2, 0, width, frameThickness, {
+    isStatic: true,
+    render: { fillStyle: frameColor },
+  }),
+  Bodies.rectangle(width / 2, height, width, frameThickness, {
+    isStatic: true,
+    render: { fillStyle: frameColor },
+  }),
+  Bodies.rectangle(0, height / 2, frameThickness, height, {
+    isStatic: true,
+    render: { fillStyle: frameColor },
+  }),
+  Bodies.rectangle(width, height / 2, frameThickness, height, {
+    isStatic: true,
+    render: { fillStyle: frameColor },
+  }),
+];
+
+World.add(world, borders);
+
+// Земля
+const ground = Bodies.rectangle(width / 2, height - 50, width, 20, {
+  isStatic: true,
+  render: { fillStyle: "#444" },
+});
 World.add(world, ground);
 
-// Добавляем несколько шаров
-for (let i = 0; i < 5; i++) {
-  const ball = Bodies.circle(400 + i * 30, 100, 20, {
-    restitution: 0.8, // прыгучесть
-    render: { fillStyle: '#f78c6b' }
+// Шары
+for (let i = 0; i < 15; i++) {
+  const ball = Bodies.circle(100 + i * 60, 100, 20, {
+    restitution: 0.9,
+    render: {
+      fillStyle: `hsl(${Math.random() * 360}, 100%, 60%)`,
+    },
   });
   World.add(world, ball);
 }
