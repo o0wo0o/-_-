@@ -16,7 +16,6 @@ Runner.run(Runner.create(), engine);
 
 let explosionTriggered = false;
 
-// Глаз
 const outerEye = Bodies.circle(centerX, centerY, 100, {
   isStatic: true,
   render: {
@@ -133,9 +132,8 @@ function splitEye() {
 }
 
 // --- Эффекты линии разреза и вспышки ---
-
-const cutDuration = 300; // длительность линии разреза в мс
-const flashDuration = 150; // длительность вспышки в мс
+const cutDuration = 300;
+const flashDuration = 150;
 let cutEffectActive = false;
 let cutEffectStartTime = 0;
 
@@ -148,11 +146,10 @@ function drawCutLine(progress) {
   ctx.shadowBlur = 20;
   ctx.lineCap = "round";
 
-  // Вертикальная линия посередине глаза сверху вниз
   const startX = centerX;
-  const startY = centerY - 100; // верх круга глаза (радиус 100)
+  const startY = centerY - 100;
   const endX = centerX;
-  const endY = startY + 200 * progress; // опускаем линию вниз
+  const endY = startY + 200 * progress;
 
   ctx.beginPath();
   ctx.moveTo(startX, startY);
@@ -191,7 +188,6 @@ render.canvas.addEventListener("click", (e) => {
     setTimeout(() => {
       World.remove(world, [outerEye, pupil]);
       splitEye();
-      cutEffectActive = false;
     }, cutDuration + 50);
   }
 });
@@ -224,23 +220,21 @@ Events.on(engine, "beforeUpdate", () => {
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
 
-  if (cutEffectActive) {
-    const elapsed = performance.now() - cutEffectStartTime;
+  const now = performance.now();
+  const elapsed = now - cutEffectStartTime;
 
-    if (elapsed <= cutDuration) {
+  if (cutEffectActive || explosionTriggered) {
+    if (cutEffectActive && elapsed <= cutDuration) {
       const progress = Math.min(elapsed / cutDuration, 1);
       drawCutLine(progress);
     }
 
-    if (elapsed <= flashDuration) {
+    if (cutEffectActive && elapsed <= flashDuration) {
       const alpha = 1 - elapsed / flashDuration;
       drawFlash(alpha);
     }
 
-    if (elapsed > cutDuration) {
-      cutEffectActive = false;
-    }
-    return; // во время эффекта линии и вспышки не рисуем остальные эффекты
+    return; // отключаем эффекты зрачка
   }
 
   // Пульсация зрачка
@@ -252,11 +246,9 @@ Events.on(render, "afterRender", () => {
   const red = Math.floor(100 + 155 * pulse);
   pupil.render.fillStyle = `rgb(${red},0,0)`;
 
-  // Мягкая тень
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
 
-  // Вертикальная линия зрачка
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = "black";
@@ -266,9 +258,7 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // Глитч-эффекты
-
-  // 1. Красно-синие смещённые контуры зрачка (хроматическая аберрация)
+  // === Хроматическая аберрация ===
   ctx.save();
   const offset = 1 + Math.random() * 2;
   ctx.beginPath();
@@ -284,7 +274,7 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // 2. Раздвоение зрачка
+  // === Раздвоение зрачка ===
   if (Math.random() < 0.05) {
     ctx.save();
     ctx.beginPath();
@@ -294,7 +284,7 @@ Events.on(render, "afterRender", () => {
     ctx.restore();
   }
 
-  // 3. TV-линии
+  // === TV-полосы ===
   if (Math.random() < 0.05) {
     for (let i = 0; i < 5; i++) {
       const y = Math.random() * render.canvas.height;
@@ -303,7 +293,7 @@ Events.on(render, "afterRender", () => {
     }
   }
 
-  // 4. Пиксельные искажения (глитч-полосы)
+  // === Глитч-полосы ===
   if (Math.random() < 0.03) {
     for (let i = 0; i < 2; i++) {
       const y = Math.random() * render.canvas.height;
