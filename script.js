@@ -38,9 +38,9 @@ let pulse = 0, pulseDirection = 1;
 let glowTarget = 40, glowCurrent = 40;
 let mouseX = centerX, mouseY = centerY;
 
-// Загрузка картинки улыбки
+// ⬇️ Загрузка картинки
 const smileImage = new Image();
-smileImage.src = 'images.png'; // путь к картинке
+smileImage.src = "images.png";
 
 window.addEventListener("mousemove", e => {
   const rect = render.canvas.getBoundingClientRect();
@@ -127,12 +127,10 @@ function splitEye() {
 
   Body.setVelocity(halfLeft, { x: -2, y: 5 });
   Body.setAngularVelocity(halfLeft, -0.2);
-
   Body.setVelocity(halfRight, { x: 2, y: 5 });
   Body.setAngularVelocity(halfRight, 0.2);
 
   World.add(world, [halfLeft, halfRight]);
-
   setTimeout(showLinks, 1200);
 }
 
@@ -185,7 +183,6 @@ render.canvas.addEventListener("click", (e) => {
 
   if (dist <= 100) {
     explosionTriggered = true;
-
     cutEffectActive = true;
     cutEffectStartTime = performance.now();
 
@@ -238,10 +235,9 @@ Events.on(render, "afterRender", () => {
       drawFlash(alpha);
     }
 
-    return; // отключаем эффекты зрачка во время и после разрезания
+    return;
   }
 
-  // Пульсация зрачка
   pulse += 0.03 * pulseDirection;
   if (pulse > 1 || pulse < 0) {
     pulseDirection *= -1;
@@ -262,9 +258,8 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // === Хроматическая аберрация ===
-  ctx.save();
   const offset = 1 + Math.random() * 2;
+  ctx.save();
   ctx.beginPath();
   ctx.arc(pupil.position.x + offset, pupil.position.y, 35, 0, Math.PI * 2);
   ctx.strokeStyle = "rgba(255,0,0,0.4)";
@@ -278,7 +273,6 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // === Раздвоение зрачка ===
   if (Math.random() < 0.05) {
     ctx.save();
     ctx.beginPath();
@@ -288,7 +282,6 @@ Events.on(render, "afterRender", () => {
     ctx.restore();
   }
 
-  // === TV-полосы ===
   if (Math.random() < 0.05) {
     for (let i = 0; i < 5; i++) {
       const y = Math.random() * render.canvas.height;
@@ -297,7 +290,6 @@ Events.on(render, "afterRender", () => {
     }
   }
 
-  // === Глитч-полосы ===
   if (Math.random() < 0.03) {
     for (let i = 0; i < 2; i++) {
       const y = Math.random() * render.canvas.height;
@@ -309,17 +301,16 @@ Events.on(render, "afterRender", () => {
     }
   }
 
-  // Рисуем улыбку при наведении мыши на глаз
+  // ⬇️ Рисуем изображение справа снизу при наведении
   const dx = mouseX - centerX;
   const dy = mouseY - centerY;
   const dist = Math.sqrt(dx * dx + dy * dy);
 
   if (dist <= 100 && smileImage.complete && !explosionTriggered && !cutEffectActive) {
-    const imgWidth = 120;
-    const imgHeight = 60;
-    const imgX = centerX - imgWidth / 2;
-    const imgY = centerY + 70; // немного ниже глаза
+    const imgWidth = 100;
+    const imgHeight = 50;
+    const imgX = centerX + 50;
+    const imgY = centerY + 50;
     ctx.drawImage(smileImage, imgX, imgY, imgWidth, imgHeight);
   }
 });
-
