@@ -3,29 +3,38 @@ const { Engine, Render, Runner, World, Bodies } = Matter;
 const engine = Engine.create();
 const { world } = engine;
 
+const width = 500;
+const height = 400;
+
 const render = Render.create({
-  element: document.body,
+  element: document.getElementById("scene-container"),
   engine: engine,
   options: {
-    width: 800,
-    height: 600,
+    width,
+    height,
     wireframes: false,
-    background: '#fafafa',
+    background: "#111",
+    pixelRatio: 1,
   }
 });
 
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
-// Создаём землю
-const ground = Bodies.rectangle(400, 590, 810, 20, { isStatic: true });
+// Земля
+const ground = Bodies.rectangle(width / 2, height - 10, width, 20, {
+  isStatic: true,
+  render: { fillStyle: "#444" }
+});
 World.add(world, ground);
 
-// Добавляем несколько шаров
-for (let i = 0; i < 5; i++) {
-  const ball = Bodies.circle(400 + i * 30, 100, 20, {
-    restitution: 0.8, // прыгучесть
-    render: { fillStyle: '#f78c6b' }
+// Шары
+for (let i = 0; i < 6; i++) {
+  const ball = Bodies.circle(100 + i * 50, 50, 20, {
+    restitution: 0.9,
+    render: {
+      fillStyle: `hsl(${Math.random() * 360}, 100%, 60%)`
+    }
   });
   World.add(world, ball);
 }
