@@ -33,17 +33,19 @@ const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
 ], {
   isStatic: true,
   render: {
-    fillStyle: "#000000",
-    strokeStyle: "#ff0044",
-    lineWidth: 4
+    fillStyle: "#000000",         // Чёрный глаз
+    strokeStyle: "#ff000033",     // Полупрозрачная красная обводка
+    lineWidth: 4,
+    shadowColor: "#ff000033",     // Тень того же цвета
+    shadowBlur: 20
   }
 }, true);
 
-// Красный зрачок
+// Красный полупрозрачный зрачок
 const pupil = Bodies.circle(centerX, centerY, 20, {
   isStatic: true,
   render: {
-    fillStyle: "#ff0044"
+    fillStyle: "#ff000033"        // Прозрачный красный зрачок
   }
 });
 
