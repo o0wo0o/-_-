@@ -1,4 +1,4 @@
-const { Engine, Render, Runner, Bodies, World, Body, Events, Vector } = Matter;
+const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -22,7 +22,7 @@ const render = Render.create({
 Render.run(render);
 Runner.run(Runner.create(), engine);
 
-// Глаз
+// Глаз (внешний круг)
 const outerEye = Bodies.circle(centerX, centerY, 100, {
   isStatic: true,
   render: {
@@ -34,9 +34,8 @@ const outerEye = Bodies.circle(centerX, centerY, 100, {
   }
 });
 
-// Зрачок (изначальный радиус)
-let pupilRadius = 35;
-const pupil = Bodies.circle(centerX, centerY, pupilRadius, {
+// Зрачок
+const pupil = Bodies.circle(centerX, centerY, 35, {
   isStatic: true,
   render: {
     fillStyle: "#ff0000"
@@ -54,8 +53,9 @@ let glowCurrent = 40;
 let mouseX = centerX;
 let mouseY = centerY;
 
-let pupilScale = 1;
-let pupilTargetScale = 1;
+// Масштаб глазного блока
+let eyeScale = 1;
+let targetEyeScale = 1;
 
 window.addEventListener("mousemove", (e) => {
   const rect = render.canvas.getBoundingClientRect();
@@ -67,10 +67,11 @@ Events.on(engine, "beforeUpdate", () => {
   const dx = mouseX - centerX;
   const dy = mouseY - centerY;
   const distance = Math.sqrt(dx * dx + dy * dy);
+
   const dist = Math.min(30, distance);
   const angle = Math.atan2(dy, dx);
 
-  // Тряска
+  // Тряска только при близости
   let shakeAmount = 0;
   if (distance < 100) {
     const intensity = (100 - distance) / 100;
@@ -80,31 +81,38 @@ Events.on(engine, "beforeUpdate", () => {
   const shakeX = (Math.random() - 0.5) * 2 * shakeAmount;
   const shakeY = (Math.random() - 0.5) * 2 * shakeAmount;
 
+  // Перемещение глаз
   const x = centerX + Math.cos(angle) * dist + shakeX;
   const y = centerY + Math.sin(angle) * dist + shakeY;
+
   Body.setPosition(pupil, { x, y });
 
-  // 🔴 Масштаб зрачка при приближении
-  pupilTargetScale = distance < 60 ? 2.5 : 1;
-
-  // Плавная анимация масштаба
+  // Масштаб глаза + зрачка вместе
+  targetEyeScale = distance < 60 ? 1.5 : 1;
   const scaleStep = 0.05;
-  if (Math.abs(pupilScale - pupilTargetScale) > 0.01) {
-    const scaleChange = pupilTargetScale > pupilScale ? scaleStep : -scaleStep;
-    const newScale = pupilScale + scaleChange;
 
-    const scaleFactor = newScale / pupilScale;
-    Body.scale(pupil, scaleFactor, scaleFactor);
-    pupilScale = newScale;
+  if (Math.abs(eyeScale - targetEyeScale) > 0.01) {
+    const scaleChange = targetEyeScale > eyeScale ? scaleStep : -scaleStep;
+    const newScale = eyeScale + scaleChange;
+
+    const factor = newScale / eyeScale;
+
+    Body.scale(outerEye, factor, factor);
+    Body.scale(pupil, factor, factor);
+
+    Body.setPosition(outerEye, { x: centerX, y: centerY });
+    Body.setPosition(pupil, { x, y });
+
+    eyeScale = newScale;
   }
 
-  // Свечение
   glowTarget = distance < 60 ? 80 : 40;
 });
 
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
 
+  // Пульсация зрачка
   pulse += 0.03 * pulseDirection;
   if (pulse > 1 || pulse < 0) {
     pulseDirection *= -1;
@@ -113,16 +121,17 @@ Events.on(render, "afterRender", () => {
   const red = Math.floor(100 + 155 * pulse);
   pupil.render.fillStyle = `rgb(${red},0,0)`;
 
+  // Плавное свечение
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
 
-  // Вертикальная линия в зрачке
+  // Вертикальная линия в зрачке (адаптируется под масштаб)
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = "black";
   ctx.lineWidth = 3;
-  ctx.moveTo(pupil.position.x, pupil.position.y - 20 * pupilScale);
-  ctx.lineTo(pupil.position.x, pupil.position.y + 20 * pupilScale);
+  ctx.moveTo(pupil.position.x, pupil.position.y - 20 * eyeScale);
+  ctx.lineTo(pupil.position.x, pupil.position.y + 20 * eyeScale);
   ctx.stroke();
   ctx.restore();
 });
