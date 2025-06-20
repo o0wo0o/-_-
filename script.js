@@ -16,7 +16,7 @@ Runner.run(Runner.create(), engine);
 
 let explosionTriggered = false;
 
-// Полный круг глаза
+// Глаз
 const outerEye = Bodies.circle(centerX, centerY, 100, {
   isStatic: true,
   render: {
@@ -122,7 +122,6 @@ function splitEye() {
     }
   });
 
-  // Начальная сила движения
   Body.setVelocity(halfLeft, { x: -2, y: 5 });
   Body.setAngularVelocity(halfLeft, -0.2);
   Body.setVelocity(halfRight, { x: 2, y: 5 });
@@ -130,8 +129,46 @@ function splitEye() {
 
   World.add(world, [halfLeft, halfRight]);
 
-  // Показываем ссылки через 1.2 секунды
   setTimeout(showLinks, 1200);
+}
+
+// --- Эффекты линии разреза и вспышки ---
+
+const cutDuration = 300; // длительность линии разреза, мс
+const flashDuration = 150; // длительность вспышки, мс
+let cutEffectActive = false;
+let cutEffectStartTime = 0;
+
+function drawCutLine(progress) {
+  const ctx = render.context;
+  ctx.save();
+  ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - progress)})`;
+  ctx.lineWidth = 4;
+  ctx.shadowColor = "white";
+  ctx.shadowBlur = 20;
+  ctx.lineCap = "round";
+
+  const startX = centerX - 80;
+  const startY = centerY - 80;
+  const endX = startX + 160 * progress;
+  const endY = startY + 160 * 0.4 * progress;
+
+  ctx.beginPath();
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
+  ctx.stroke();
+
+  ctx.restore();
+}
+
+function drawFlash(alpha) {
+  const ctx = render.context;
+  ctx.save();
+  ctx.fillStyle = `rgba(255, 255, 200, ${alpha})`;
+  ctx.beginPath();
+  ctx.arc(centerX, centerY, 120, 0, Math.PI * 2);
+  ctx.fill();
+  ctx.restore();
 }
 
 render.canvas.addEventListener("click", (e) => {
@@ -146,8 +183,15 @@ render.canvas.addEventListener("click", (e) => {
 
   if (dist <= 100) {
     explosionTriggered = true;
-    World.remove(world, [outerEye, pupil]);
-    splitEye();
+
+    cutEffectActive = true;
+    cutEffectStartTime = performance.now();
+
+    setTimeout(() => {
+      World.remove(world, [outerEye, pupil]);
+      splitEye();
+      cutEffectActive = false;
+    }, cutDuration + 50);
   }
 });
 
@@ -177,22 +221,41 @@ Events.on(engine, "beforeUpdate", () => {
 });
 
 Events.on(render, "afterRender", () => {
-  if (explosionTriggered) return;
-
   const ctx = render.context;
 
+  if (cutEffectActive) {
+    const elapsed = performance.now() - cutEffectStartTime;
+
+    if (elapsed <= cutDuration) {
+      const progress = Math.min(elapsed / cutDuration, 1);
+      drawCutLine(progress);
+    }
+
+    if (elapsed <= flashDuration) {
+      const alpha = 1 - elapsed / flashDuration;
+      drawFlash(alpha);
+    }
+
+    if (elapsed > cutDuration) {
+      cutEffectActive = false;
+    }
+    return; // во время эффекта линии и вспышки не рисуем остальные эффекты
+  }
+
+  // Пульсация зрачка
   pulse += 0.03 * pulseDirection;
   if (pulse > 1 || pulse < 0) {
     pulseDirection *= -1;
     pulse = Math.max(0, Math.min(1, pulse));
   }
-
   const red = Math.floor(100 + 155 * pulse);
   pupil.render.fillStyle = `rgb(${red},0,0)`;
 
+  // Мягкая тень
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
 
+  // Вертикальная линия зрачка
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = "black";
@@ -201,4 +264,53 @@ Events.on(render, "afterRender", () => {
   ctx.lineTo(pupil.position.x, pupil.position.y + 20);
   ctx.stroke();
   ctx.restore();
+
+  // Глитч-эффекты
+
+  // 1. Красно-синие смещённые контуры зрачка (хроматическая аберрация)
+  ctx.save();
+  const offset = 1 + Math.random() * 2;
+  ctx.beginPath();
+  ctx.arc(pupil.position.x + offset, pupil.position.y, 35, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,0,0,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(pupil.position.x - offset, pupil.position.y, 35, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0,255,255,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // 2. Раздвоение зрачка
+  if (Math.random() < 0.05) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pupil.position.x + 6, pupil.position.y - 6, 35, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 3. TV-линии
+  if (Math.random() < 0.05) {
+    for (let i = 0; i < 5; i++) {
+      const y = Math.random() * render.canvas.height;
+      ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
+      ctx.fillRect(0, y, render.canvas.width, 2);
+    }
+  }
+
+  // 4. Пиксельные искажения (глитч-полосы)
+  if (Math.random() < 0.03) {
+    for (let i = 0; i < 2; i++) {
+      const y = Math.random() * render.canvas.height;
+      const w = render.canvas.width;
+      const h = 5 + Math.random() * 5;
+      const imgData = ctx.getImageData(0, y, w, h);
+      const dx = Math.random() * 10 - 5;
+      ctx.putImageData(imgData, dx, y);
+    }
+  }
 });
