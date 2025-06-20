@@ -70,14 +70,21 @@ Events.on(engine, "beforeUpdate", () => {
 
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
+
+  // Пульсация зрачка
   pulse += 0.03 * pulseDirection;
-  if (pulse > 1 || pulse < 0) { pulseDirection *= -1; pulse = Math.max(0, Math.min(1, pulse)); }
+  if (pulse > 1 || pulse < 0) {
+    pulseDirection *= -1;
+    pulse = Math.max(0, Math.min(1, pulse));
+  }
   const red = Math.floor(100 + 155 * pulse);
   pupil.render.fillStyle = `rgb(${red},0,0)`;
 
+  // Мягкая тень
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
 
+  // Вертикальная линия зрачка
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = "black";
@@ -86,4 +93,53 @@ Events.on(render, "afterRender", () => {
   ctx.lineTo(pupil.position.x, pupil.position.y + 20);
   ctx.stroke();
   ctx.restore();
+
+  // === ГЛИТЧ-ЭФФЕКТЫ ===
+
+  // 1. Красно-синие смещённые контуры зрачка (хроматическая аберрация)
+  ctx.save();
+  const offset = 1 + Math.random() * 2;
+  ctx.beginPath();
+  ctx.arc(pupil.position.x + offset, pupil.position.y, 35, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,0,0,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(pupil.position.x - offset, pupil.position.y, 35, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0,255,255,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  // 2. Раздвоение зрачка
+  if (Math.random() < 0.05) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pupil.position.x + 6, pupil.position.y - 6, 35, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+    ctx.fill();
+    ctx.restore();
+  }
+
+  // 3. TV-линии
+  if (Math.random() < 0.05) {
+    for (let i = 0; i < 5; i++) {
+      const y = Math.random() * render.canvas.height;
+      ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
+      ctx.fillRect(0, y, render.canvas.width, 2);
+    }
+  }
+
+  // 4. Пиксельные искажения (глитч-полосы)
+  if (Math.random() < 0.03) {
+    for (let i = 0; i < 2; i++) {
+      const y = Math.random() * render.canvas.height;
+      const w = render.canvas.width;
+      const h = 5 + Math.random() * 5;
+      const imgData = ctx.getImageData(0, y, w, h);
+      const dx = Math.random() * 10 - 5;
+      ctx.putImageData(imgData, dx, y);
+    }
+  }
 });
