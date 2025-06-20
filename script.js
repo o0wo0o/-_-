@@ -36,6 +36,98 @@ let pulse = 0, pulseDirection = 1;
 let glowTarget = 40, glowCurrent = 40;
 let mouseX = centerX, mouseY = centerY;
 
+const explosionTriggered = { value: false };
+const linkData = [
+  { text: "Hack The Box", url: "https://app.hackthebox.com/profile/1159833" },
+  { text: "GitHub", url: "https://github.com/o0wo0o" },
+  { text: "My Blog", url: "https://o0wo0o.github.io/-_/" }
+];
+const particles = [];
+
+function createExplosion(x, y) {
+  for (let i = 0; i < 60; i++) {
+    const angle = Math.random() * 2 * Math.PI;
+    const speed = Math.random() * 10 + 5;
+    const vx = Math.cos(angle) * speed;
+    const vy = Math.sin(angle) * speed;
+    const radius = Math.random() * 4 + 2;
+    const particle = Bodies.circle(x, y, radius, {
+      render: { fillStyle: `rgba(255,0,0,${Math.random()})` }
+    });
+    Body.setVelocity(particle, { x: vx, y: vy });
+    particles.push(particle);
+    World.add(world, particle);
+  }
+}
+
+function showLinks() {
+  const container = document.getElementById("scene-container");
+  container.innerHTML = "";
+
+  const box = document.createElement("div");
+  box.style.position = "absolute";
+  box.style.top = "50%";
+  box.style.left = "50%";
+  box.style.transform = "translate(-50%, -50%)";
+  box.style.background = "black";
+  box.style.color = "lime";
+  box.style.fontFamily = "monospace";
+  box.style.padding = "20px";
+  box.style.textAlign = "left";
+  box.style.zIndex = "5";
+  box.style.border = "1px solid lime";
+  container.appendChild(box);
+
+  let index = 0;
+
+  function typeLine(link, done) {
+    let charIndex = 0;
+    const line = document.createElement("div");
+    box.appendChild(line);
+
+    function typeChar() {
+      if (charIndex < link.text.length) {
+        line.textContent += link.text[charIndex];
+        charIndex++;
+        setTimeout(typeChar, 80);
+      } else {
+        line.innerHTML = `<a href='${link.url}' target='_blank' style='color: lime;'>${link.text}</a>`;
+        done();
+      }
+    }
+    typeChar();
+  }
+
+  function nextLink() {
+    if (index < linkData.length) {
+      typeLine(linkData[index], () => {
+        index++;
+        setTimeout(nextLink, 300);
+      });
+    }
+  }
+
+  nextLink();
+}
+
+render.canvas.addEventListener("click", (e) => {
+  if (explosionTriggered.value) return;
+
+  const rect = render.canvas.getBoundingClientRect();
+  const mx = e.clientX - rect.left;
+  const my = e.clientY - rect.top;
+  const dx = mx - centerX;
+  const dy = my - centerY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
+  if (dist <= 100) {
+    explosionTriggered.value = true;
+    World.remove(world, [outerEye, pupil]);
+    createExplosion(centerX, centerY);
+    showLinks();
+  }
+});
+
 window.addEventListener("mousemove", e => {
   const rect = render.canvas.getBoundingClientRect();
   mouseX = e.clientX - rect.left;
@@ -43,6 +135,8 @@ window.addEventListener("mousemove", e => {
 });
 
 Events.on(engine, "beforeUpdate", () => {
+  if (explosionTriggered.value) return;
+
   const dx = mouseX - centerX;
   const dy = mouseY - centerY;
   const distance = Math.hypot(dx, dy);
@@ -69,9 +163,10 @@ Events.on(engine, "beforeUpdate", () => {
 });
 
 Events.on(render, "afterRender", () => {
+  if (explosionTriggered.value) return;
+
   const ctx = render.context;
 
-  // Пульсация зрачка
   pulse += 0.03 * pulseDirection;
   if (pulse > 1 || pulse < 0) {
     pulseDirection *= -1;
@@ -80,11 +175,9 @@ Events.on(render, "afterRender", () => {
   const red = Math.floor(100 + 155 * pulse);
   pupil.render.fillStyle = `rgb(${red},0,0)`;
 
-  // Мягкая тень
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
 
-  // Вертикальная линия зрачка
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = "black";
@@ -94,9 +187,7 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // === ГЛИТЧ-ЭФФЕКТЫ ===
-
-  // 1. Красно-синие смещённые контуры зрачка (хроматическая аберрация)
+  // === Глитч ===
   ctx.save();
   const offset = 1 + Math.random() * 2;
   ctx.beginPath();
@@ -112,7 +203,6 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // 2. Раздвоение зрачка
   if (Math.random() < 0.05) {
     ctx.save();
     ctx.beginPath();
@@ -122,7 +212,6 @@ Events.on(render, "afterRender", () => {
     ctx.restore();
   }
 
-  // 3. TV-линии
   if (Math.random() < 0.05) {
     for (let i = 0; i < 5; i++) {
       const y = Math.random() * render.canvas.height;
@@ -131,7 +220,6 @@ Events.on(render, "afterRender", () => {
     }
   }
 
-  // 4. Пиксельные искажения (глитч-полосы)
   if (Math.random() < 0.03) {
     for (let i = 0; i < 2; i++) {
       const y = Math.random() * render.canvas.height;
