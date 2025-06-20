@@ -34,8 +34,8 @@ const canvas = document.getElementById('matrix-canvas');
 canvas.width = window.innerWidth;
 canvas.height = window.innerHeight;
 
-// Генерируем массив символов: катакана + цифры
-const chars = matrix.range(0x30A1, 0x30F6).concat(matrix.range(0x0030, 0x0039));
+// Генерируем массив символов: только цифры
+const chars = matrix.range(0x0030, 0x0039);
 
 // Функция для выбора случайного цвета (синий или красный)
 function randomColorChar() {
