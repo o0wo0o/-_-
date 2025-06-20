@@ -23,14 +23,23 @@ Render.run(render);
 Runner.run(Runner.create(), engine);
 
 // Внешняя оболочка глаза
-const outerEye = Bodies.circle(centerX, centerY, 100, {
+// Сплюснутый глаз (эллипс)
+const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
+  Array.from({ length: 60 }, (_, i) => {
+    const angle = (Math.PI * 2 * i) / 60;
+    const x = Math.cos(angle) * 100; // ширина
+    const y = Math.sin(angle) * 60;  // высота (сжатие по вертикали)
+    return { x, y };
+  })
+], {
   isStatic: true,
   render: {
     fillStyle: "#111",
     strokeStyle: "#ff0000",
     lineWidth: 4
   }
-});
+}, true);
+
 
 // Зрачок
 const pupil = Bodies.circle(centerX, centerY, 20, {
