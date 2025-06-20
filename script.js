@@ -53,25 +53,27 @@ let glowCurrent = 40;
 let mouseX = centerX;
 let mouseY = centerY;
 
-// Обновляем позицию мыши
+// === Обновляем позицию мыши ===
 window.addEventListener("mousemove", (e) => {
   const rect = render.canvas.getBoundingClientRect();
   mouseX = e.clientX - rect.left;
   mouseY = e.clientY - rect.top;
 });
 
-// Положение зрачка с постоянной тряской
+// === Положение зрачка с адаптивной тряской ===
 Events.on(engine, "beforeUpdate", () => {
   const dx = mouseX - centerX;
   const dy = mouseY - centerY;
   const distance = Math.sqrt(dx * dx + dy * dy);
+
   const dist = Math.min(30, distance);
   const angle = Math.atan2(dy, dx);
 
-  // Базовая тряска всегда + усиливается при приближении
-  const baseShake = 2; // всегда
-  const proximityShake = Math.max(0, (60 - distance) / 60) * 6; // до +6
-  const shakeAmount = baseShake + proximityShake;
+  // 🔥 Только если курсор ближе 100px
+  let shakeAmount = 0;
+  if (distance < 100) {
+    shakeAmount = ((100 - distance) / 100) * 6; // max 6px
+  }
 
   const shakeX = (Math.random() - 0.5) * 2 * shakeAmount;
   const shakeY = (Math.random() - 0.5) * 2 * shakeAmount;
@@ -81,15 +83,15 @@ Events.on(engine, "beforeUpdate", () => {
 
   Body.setPosition(pupil, { x, y });
 
-  // Адаптивное свечение
+  // Свечение усиливается при приближении
   glowTarget = distance < 60 ? 80 : 40;
 });
 
-// Отображение и эффекты
+// === Эффекты ===
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
 
-  // Пульсация зрачка
+  // Пульсация цвета зрачка
   pulse += 0.03 * pulseDirection;
   if (pulse > 1 || pulse < 0) {
     pulseDirection *= -1;
