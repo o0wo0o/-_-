@@ -5,38 +5,42 @@
   <title>0w0</title>
   <style>
     html, body {
+      height: 100%;
       margin: 0;
       padding: 0;
-      overflow: hidden;
-      height: 100%;
-      width: 100%;
       background: black;
-    }
-
-    #matrix-canvas, #matter-canvas {
-      position: absolute;
-      top: 0;
-      left: 0;
-      display: block;
+      overflow: hidden;
     }
 
     #scene-container {
+      width: 100vw;
+      height: 100vh;
+      position: relative;
+    }
+
+    canvas {
+      display: block;
+    }
+
+    .smile {
       position: absolute;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%, -50%);
-      z-index: 1;
-      box-shadow: 0 0 40px rgba(255, 0, 0, 0.3);
-      border: 2px solid rgba(255, 0, 0, 0.2);
+      width: 60px;
+      opacity: 0;
+      transition: opacity 0.6s ease;
+      pointer-events: none;
     }
   </style>
 </head>
 <body>
-  <canvas id="matrix-canvas"></canvas>
-  <div id="scene-container"></div>
+  <div id="scene-container">
+    <!-- Улыбки (позиции можно менять по вкусу) -->
+    <img src="images.png" class="smile" style="top: 10%; left: 5%;" />
+    <img src="images.png" class="smile" style="bottom: 10%; right: 5%; transform: scaleX(-1);" />
+    <img src="images.png" class="smile" style="top: 70%; left: 60%;" />
+    <img src="images.png" class="smile" style="top: 30%; right: 20%; transform: scaleX(-1);" />
+  </div>
 
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
-  <script src="matrix.js"></script>
   <script src="script.js"></script>
 </body>
 </html>
