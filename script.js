@@ -1,4 +1,6 @@
-const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
+// Подключи PolyK.js перед этим скриптом в html!
+
+const { Engine, Render, Runner, Bodies, World, Body, Events, Composite, Vertices, Vector } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -100,76 +102,84 @@ function showLinks() {
   nextLink();
 }
 
+// --- PolyK helper: преобразует тело в плоский массив [x0,y0, x1,y1, ...] для PolyK ---
+function getPolyFromBody(body) {
+  let vertices = body.vertices.map(v => ({ x: v.x, y: v.y }));
+  return [].concat(...vertices.map(v => [v.x, v.y]));
+}
+
+// Создаёт тело Matter.js из массива вершин
+function createBodyFromVertices(vertices, originalBody) {
+  // Центр тела
+  var center = Vertices.centre(vertices);
+
+  var newBody = Bodies.fromVertices(center.x, center.y, [vertices], {
+    render: {
+      fillStyle: originalBody.render.fillStyle,
+      strokeStyle: originalBody.render.strokeStyle,
+      lineWidth: originalBody.render.lineWidth,
+      shadowColor: originalBody.render.shadowColor,
+      shadowBlur: originalBody.render.shadowBlur,
+    }
+  }, true);
+
+  return newBody;
+}
+
 function splitEye() {
-  // Левая трапеция (широкая у центра, узкая у края)
-  const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
-    render: {
-      fillStyle: "#000000",
-      strokeStyle: "#ff0000",
-      lineWidth: 4,
-      shadowColor: "#ff0000",
-      shadowBlur: 40
+  // линия разреза: вертикаль сверху вниз по центру глаза
+  const startSlicePoint = { x: centerX, y: centerY - 100 };
+  const endSlicePoint = { x: centerX, y: centerY + 100 };
+
+  // получаем полигон глаза в формате PolyK
+  let polygon = getPolyFromBody(outerEye);
+
+  if (!PolyK.IsSimple(polygon)) {
+    console.warn("Глаз — не простой полигон, разрезать нельзя");
+    return;
+  }
+
+  // разрезаем полигон по линии
+  let newPolygons = PolyK.Slice(polygon, startSlicePoint.x, startSlicePoint.y, endSlicePoint.x, endSlicePoint.y);
+
+  if (newPolygons.length <= 1) {
+    console.warn("Разрез не дал результатов");
+    return;
+  }
+
+  // Создаём тела из новых полигонов
+  const newBodies = newPolygons.map(poly => {
+    let verts = [];
+    for (let i = 0; i < poly.length; i += 2) {
+      verts.push({ x: poly[i], y: poly[i + 1] });
     }
+    return createBodyFromVertices(verts, outerEye);
   });
 
-  // Правая трапеция
-  const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
-    render: {
-      fillStyle: "#000000",
-      strokeStyle: "#ff0000",
-      lineWidth: 4,
-      shadowColor: "#ff0000",
-      shadowBlur: 40
-    }
+  // Сохраняем скорость и угловую скорость исходного тела (нулевые, т.к. static)
+  const originalVelocity = outerEye.velocity;
+  const originalAngularVelocity = outerEye.angularVelocity;
+
+  // Удаляем исходное тело
+  World.remove(world, outerEye);
+  World.remove(world, pupil);
+
+  // Добавляем новые тела
+  newBodies.forEach((body, i) => {
+    // даём стартовые скорости и вращение для эффекта разлёта
+    let direction = i === 0 ? -1 : 1;
+    Body.setVelocity(body, { x: direction * 2, y: 5 });
+    Body.setAngularVelocity(body, direction * 0.2);
+
+    World.add(world, body);
   });
 
-  Body.setVelocity(halfLeft, { x: -2, y: 5 });
-  Body.setAngularVelocity(halfLeft, -0.2);
-
-  Body.setVelocity(halfRight, { x: 2, y: 5 });
-  Body.setAngularVelocity(halfRight, 0.2);
-
-  World.add(world, [halfLeft, halfRight]);
-
+  // Через 1.2 секунды показываем ссылки
   setTimeout(showLinks, 1200);
 }
 
-const cutDuration = 300;
-const flashDuration = 150;
-let cutEffectActive = false;
-let cutEffectStartTime = 0;
-
-function drawCutLine(progress) {
-  const ctx = render.context;
-  ctx.save();
-  ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - progress)})`;
-  ctx.lineWidth = 4;
-  ctx.shadowColor = "white";
-  ctx.shadowBlur = 20;
-  ctx.lineCap = "round";
-
-  const startX = centerX;
-  const startY = centerY - 100;
-  const endX = centerX;
-  const endY = startY + 200 * progress;
-
-  ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  ctx.lineTo(endX, endY);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawFlash(alpha) {
-  const ctx = render.context;
-  ctx.save();
-  ctx.fillStyle = `rgba(255, 255, 200, ${alpha})`;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 120, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
+let pulse = 0, pulseDirection = 1;
+let glowTarget = 40, glowCurrent = 40;
 
 render.canvas.addEventListener("click", (e) => {
   if (explosionTriggered) return;
@@ -183,14 +193,7 @@ render.canvas.addEventListener("click", (e) => {
 
   if (dist <= 100) {
     explosionTriggered = true;
-
-    cutEffectActive = true;
-    cutEffectStartTime = performance.now();
-
-    setTimeout(() => {
-      World.remove(world, [outerEye, pupil]);
-      splitEye();
-    }, cutDuration + 50);
+    splitEye();
   }
 });
 
@@ -222,22 +225,7 @@ Events.on(engine, "beforeUpdate", () => {
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
 
-  const now = performance.now();
-  const elapsed = now - cutEffectStartTime;
-
-  if (cutEffectActive || explosionTriggered) {
-    if (cutEffectActive && elapsed <= cutDuration) {
-      const progress = Math.min(elapsed / cutDuration, 1);
-      drawCutLine(progress);
-    }
-
-    if (cutEffectActive && elapsed <= flashDuration) {
-      const alpha = 1 - elapsed / flashDuration;
-      drawFlash(alpha);
-    }
-
-    return; // отключаем эффекты зрачка во время и после разрезания
-  }
+  if (explosionTriggered) return;
 
   // Пульсация зрачка
   pulse += 0.03 * pulseDirection;
@@ -260,7 +248,7 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // === Хроматическая аберрация ===
+  // Хроматическая аберрация
   ctx.save();
   const offset = 1 + Math.random() * 2;
   ctx.beginPath();
@@ -276,7 +264,7 @@ Events.on(render, "afterRender", () => {
   ctx.stroke();
   ctx.restore();
 
-  // === Раздвоение зрачка ===
+  // Раздвоение зрачка
   if (Math.random() < 0.05) {
     ctx.save();
     ctx.beginPath();
@@ -286,7 +274,7 @@ Events.on(render, "afterRender", () => {
     ctx.restore();
   }
 
-  // === TV-полосы ===
+  // TV-полосы
   if (Math.random() < 0.05) {
     for (let i = 0; i < 5; i++) {
       const y = Math.random() * render.canvas.height;
@@ -295,7 +283,7 @@ Events.on(render, "afterRender", () => {
     }
   }
 
-  // === Глитч-полосы ===
+  // Глитч-полосы
   if (Math.random() < 0.03) {
     for (let i = 0; i < 2; i++) {
       const y = Math.random() * render.canvas.height;
