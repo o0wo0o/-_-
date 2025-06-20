@@ -26,26 +26,26 @@ Runner.run(Runner.create(), engine);
 const outerEye = Matter.Bodies.fromVertices(centerX, centerY, [
   Array.from({ length: 60 }, (_, i) => {
     const angle = (Math.PI * 2 * i) / 60;
-    const x = Math.cos(angle) * 100; // ширина
-    const y = Math.sin(angle) * 60;  // высота
+    const x = Math.cos(angle) * 100;
+    const y = Math.sin(angle) * 60;
     return { x, y };
   })
 ], {
   isStatic: true,
   render: {
-    fillStyle: "#000000",         // Чёрный глаз
-    strokeStyle: "#ff000033",     // Полупрозрачная красная обводка
+    fillStyle: "#000000",     // Чёрный глаз
+    strokeStyle: "#ff0000",   // Ярко-красная обводка
     lineWidth: 4,
-    shadowColor: "#ff000033",     // Тень того же цвета
-    shadowBlur: 20
+    shadowColor: "#ff0000",   // Ярко-красная тень
+    shadowBlur: 40            // Более сильное свечение
   }
 }, true);
 
-// Красный полупрозрачный зрачок
+// Зрачок — яркий красный
 const pupil = Bodies.circle(centerX, centerY, 20, {
   isStatic: true,
   render: {
-    fillStyle: "#ff000033"        // Прозрачный красный зрачок
+    fillStyle: "#ff0000"      // Ярко-красный зрачок
   }
 });
 
@@ -65,7 +65,7 @@ window.addEventListener("mousemove", (e) => {
   Body.setPosition(pupil, { x, y });
 });
 
-// Добавим вертикальную чёрную линию в центр зрачка
+// Добавим чёрную вертикальную линию в зрачке
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
   ctx.save();
