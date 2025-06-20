@@ -134,80 +134,6 @@ function splitEye() {
   setTimeout(showLinks, 1200);
 }
 
-// --- CUT EFFECT BEGIN ---
-
-const cutDuration = 300; // длительность линии разреза в мс
-const flashDuration = 150; // длительность вспышки в мс
-
-function drawCutLine(progress) {
-  const ctx = render.context;
-  ctx.save();
-  ctx.strokeStyle = `rgba(255,255,255,${0.9 * (1 - progress)})`;
-  ctx.lineWidth = 4;
-  ctx.shadowColor = "white";
-  ctx.shadowBlur = 20;
-  ctx.lineCap = "round";
-
-  // Линия с небольшим наклоном (как разрез мечом)
-  const startX = centerX - 80;
-  const startY = centerY - 80;
-  const endX = startX + 160 * progress;
-  const endY = startY + 160 * 0.4 * progress; // 0.4 - наклон линии
-
-  ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  ctx.lineTo(endX, endY);
-  ctx.stroke();
-
-  ctx.restore();
-}
-
-function drawFlash(alpha) {
-  const ctx = render.context;
-  ctx.save();
-  ctx.fillStyle = `rgba(255, 255, 200, ${alpha})`;
-  ctx.beginPath();
-  ctx.arc(centerX, centerY, 120, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
-}
-
-function animateCutEffect(callback) {
-  const start = performance.now();
-
-  function frame(time) {
-    const elapsed = time - start;
-    const ctx = render.context;
-
-    // Очищаем поверхностно только область линии и вспышки
-    ctx.clearRect(0, 0, width, height);
-
-    // Рисуем линию прогрессивно
-    if (elapsed <= cutDuration) {
-      const progress = Math.min(elapsed / cutDuration, 1);
-      drawCutLine(progress);
-    }
-
-    // Рисуем вспышку (исчезающую)
-    if (elapsed <= flashDuration) {
-      const alpha = 1 - elapsed / flashDuration;
-      drawFlash(alpha);
-    }
-
-    if (elapsed < cutDuration) {
-      requestAnimationFrame(frame);
-    } else {
-      // Очистим контекст после анимации
-      ctx.clearRect(0, 0, width, height);
-      callback();
-    }
-  }
-
-  requestAnimationFrame(frame);
-}
-
-// --- CUT EFFECT END ---
-
 render.canvas.addEventListener("click", (e) => {
   if (explosionTriggered) return;
 
@@ -220,13 +146,8 @@ render.canvas.addEventListener("click", (e) => {
 
   if (dist <= 100) {
     explosionTriggered = true;
-
-    // Убираем глаз и зрачок только после эффекта
-    // Сначала анимация линии и вспышки, потом splitEye
-    animateCutEffect(() => {
-      World.remove(world, [outerEye, pupil]);
-      splitEye();
-    });
+    World.remove(world, [outerEye, pupil]);
+    splitEye();
   }
 });
 
