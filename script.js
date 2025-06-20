@@ -38,9 +38,8 @@ let pulse = 0, pulseDirection = 1;
 let glowTarget = 40, glowCurrent = 40;
 let mouseX = centerX, mouseY = centerY;
 
-// ⬇️ Загрузка картинки
-const smileImage = new Image();
-smileImage.src = "images.png";
+// ⬇️ Получаем DOM-картинку
+const smileImg = document.querySelector(".smile");
 
 window.addEventListener("mousemove", e => {
   const rect = render.canvas.getBoundingClientRect();
@@ -157,7 +156,6 @@ function drawCutLine(progress) {
   ctx.moveTo(startX, startY);
   ctx.lineTo(endX, endY);
   ctx.stroke();
-
   ctx.restore();
 }
 
@@ -216,6 +214,12 @@ Events.on(engine, "beforeUpdate", () => {
   Body.setPosition(pupil, { x, y });
 
   glowTarget = distance < 60 ? 80 : 40;
+
+  // ➕ Плавное появление картинки
+  if (smileImg) {
+    const opacity = (distance <= 100) ? "1" : "0";
+    smileImg.style.opacity = opacity;
+  }
 });
 
 Events.on(render, "afterRender", () => {
@@ -299,18 +303,5 @@ Events.on(render, "afterRender", () => {
       const dx = Math.random() * 10 - 5;
       ctx.putImageData(imgData, dx, y);
     }
-  }
-
-  // ⬇️ Рисуем изображение справа снизу при наведении
-  const dx = mouseX - centerX;
-  const dy = mouseY - centerY;
-  const dist = Math.sqrt(dx * dx + dy * dy);
-
-  if (dist <= 100 && smileImage.complete && !explosionTriggered && !cutEffectActive) {
-    const imgWidth = 100;
-    const imgHeight = 50;
-    const imgX = centerX + 50;
-    const imgY = centerY + 50;
-    ctx.drawImage(smileImage, imgX, imgY, imgWidth, imgHeight);
   }
 });
