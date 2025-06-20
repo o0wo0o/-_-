@@ -26,25 +26,25 @@ Runner.run(Runner.create(), engine);
 const outerEye = Bodies.circle(centerX, centerY, 100, {
   isStatic: true,
   render: {
-    fillStyle: "#000000",     // Чёрный глаз
-    strokeStyle: "#ff0000",   // Ярко-красная обводка
+    fillStyle: "#000000",
+    strokeStyle: "#ff0000",
     lineWidth: 4,
-    shadowColor: "#ff0000",   // Ярко-красная тень
+    shadowColor: "#ff0000",
     shadowBlur: 40
   }
 });
 
-// Зрачок
-const pupil = Bodies.circle(centerX, centerY, 20, {
+// Увеличенный зрачок
+const pupil = Bodies.circle(centerX, centerY, 35, {
   isStatic: true,
   render: {
-    fillStyle: "#ff0000"      // Ярко-красный зрачок
+    fillStyle: "#ff0000"
   }
 });
 
 World.add(world, [outerEye, pupil]);
 
-// Анимационные переменные
+// Анимационные параметры
 let pulse = 0;
 let pulseDirection = 1;
 let glowTarget = 40;
@@ -53,20 +53,26 @@ let glowCurrent = 40;
 let mouseX = centerX;
 let mouseY = centerY;
 
+// Обновляем позицию мыши
 window.addEventListener("mousemove", (e) => {
   const rect = render.canvas.getBoundingClientRect();
   mouseX = e.clientX - rect.left;
   mouseY = e.clientY - rect.top;
+});
 
+// Положение зрачка с постоянной тряской
+Events.on(engine, "beforeUpdate", () => {
   const dx = mouseX - centerX;
   const dy = mouseY - centerY;
   const distance = Math.sqrt(dx * dx + dy * dy);
-
   const dist = Math.min(30, distance);
   const angle = Math.atan2(dy, dx);
 
-  // Тряска зависит от близости курсора
-  const shakeAmount = Math.max(0, (60 - distance) / 60) * 5; // max ±5px
+  // Базовая тряска всегда + усиливается при приближении
+  const baseShake = 2; // всегда
+  const proximityShake = Math.max(0, (60 - distance) / 60) * 6; // до +6
+  const shakeAmount = baseShake + proximityShake;
+
   const shakeX = (Math.random() - 0.5) * 2 * shakeAmount;
   const shakeY = (Math.random() - 0.5) * 2 * shakeAmount;
 
@@ -75,15 +81,15 @@ window.addEventListener("mousemove", (e) => {
 
   Body.setPosition(pupil, { x, y });
 
-  // Свечение усиливается при приближении
+  // Адаптивное свечение
   glowTarget = distance < 60 ? 80 : 40;
 });
 
-// Визуальные эффекты после рендера
+// Отображение и эффекты
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
 
-  // Пульсация цвета зрачка
+  // Пульсация зрачка
   pulse += 0.03 * pulseDirection;
   if (pulse > 1 || pulse < 0) {
     pulseDirection *= -1;
@@ -92,17 +98,17 @@ Events.on(render, "afterRender", () => {
   const red = Math.floor(100 + 155 * pulse);
   pupil.render.fillStyle = `rgb(${red},0,0)`;
 
-  // Плавное усиление свечения
+  // Плавное изменение свечения
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
 
-  // Чёрная вертикальная линия в зрачке
+  // Вертикальная чёрная линия в зрачке
   ctx.save();
   ctx.beginPath();
   ctx.strokeStyle = "black";
   ctx.lineWidth = 3;
-  ctx.moveTo(pupil.position.x, pupil.position.y - 15);
-  ctx.lineTo(pupil.position.x, pupil.position.y + 15);
+  ctx.moveTo(pupil.position.x, pupil.position.y - 20);
+  ctx.lineTo(pupil.position.x, pupil.position.y + 20);
   ctx.stroke();
   ctx.restore();
 });
