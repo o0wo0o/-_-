@@ -104,8 +104,8 @@ function showLinks() {
 }
 
 function splitEye() {
-  const halfLeft = Bodies.rectangle(centerX - 50, centerY, 200, 100, {
-    chamfer: {radius: [98, 98, 0, 0]},
+  const halfLeft = Bodies.rectangle(centerX - 50, centerY, 143, 71, {
+    chamfer: {radius: [70, 70, 0, 0]},
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -115,8 +115,8 @@ function splitEye() {
     }
   });
 
-  const halfRight = Bodies.rectangle(centerX + 50, centerY, 200, 100, {
-    chamfer: {radius: [98, 98, 0, 0]},
+  const halfRight = Bodies.rectangle(centerX + 50, centerY, 143, 71, {
+    chamfer: {radius: [70, 70, 0, 0]},
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
