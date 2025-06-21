@@ -1,4 +1,4 @@
-const { Engine, Render, Runner, Bodies, World, Body, Events, Vertices } = Matter;
+const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -37,6 +37,8 @@ World.add(world, [outerEye, pupil]);
 let pulse = 0, pulseDirection = 1;
 let glowTarget = 40, glowCurrent = 40;
 let mouseX = centerX, mouseY = centerY;
+
+// ⬇️ Получаем DOM-картинку
 const smileImg = document.querySelector(".smile");
 
 window.addEventListener("mousemove", e => {
@@ -47,7 +49,8 @@ window.addEventListener("mousemove", e => {
 
 function showLinks() {
   const container = document.getElementById("scene-container");
-  container.innerHTML = `<img src='images.png' class='smile' />`;
+  container.innerHTML = "";
+
   const box = document.createElement("div");
   box.style.position = "absolute";
   box.style.top = "50%";
@@ -69,13 +72,16 @@ function showLinks() {
   ];
 
   let index = 0;
+
   function typeLine(link, done) {
     let charIndex = 0;
     const line = document.createElement("div");
     box.appendChild(line);
+
     function typeChar() {
       if (charIndex < link.text.length) {
-        line.textContent += link.text[charIndex++];
+        line.textContent += link.text[charIndex];
+        charIndex++;
         setTimeout(typeChar, 60);
       } else {
         line.innerHTML = `<a href='${link.url}' target='_blank' style='color: lime;'>${link.text}</a>`;
@@ -84,46 +90,46 @@ function showLinks() {
     }
     typeChar();
   }
+
   function nextLink() {
     if (index < links.length) {
-      typeLine(links[index++], () => setTimeout(nextLink, 300));
+      typeLine(links[index], () => {
+        index++;
+        setTimeout(nextLink, 300);
+      });
     }
   }
+
   nextLink();
 }
 
 function splitEye() {
-  const radius = 100;
-  const numPoints = 50;
-  const left = [], right = [];
+  const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
+    render: {
+      fillStyle: "#000000",
+      strokeStyle: "#ff0000",
+      lineWidth: 4,
+      shadowColor: "#ff0000",
+      shadowBlur: 40
+    }
+  });
 
-  for (let i = 0; i <= numPoints; i++) {
-    const angle = Math.PI * (i / numPoints);
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY + radius * Math.sin(angle);
-    left.push([x, y]);
-  }
-  for (let i = 0; i <= numPoints; i++) {
-    const angle = Math.PI * (1 - i / numPoints);
-    const x = centerX + radius * Math.cos(angle);
-    const y = centerY - radius * Math.sin(angle);
-    right.push([x, y]);
-  }
+  const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
+    render: {
+      fillStyle: "#000000",
+      strokeStyle: "#ff0000",
+      lineWidth: 4,
+      shadowColor: "#ff0000",
+      shadowBlur: 40
+    }
+  });
 
-  const leftBody = Bodies.fromVertices(centerX, centerY, [left], {
-    render: outerEye.render
-  }, true);
+  Body.setVelocity(halfLeft, { x: -2, y: 5 });
+  Body.setAngularVelocity(halfLeft, -0.2);
+  Body.setVelocity(halfRight, { x: 2, y: 5 });
+  Body.setAngularVelocity(halfRight, 0.2);
 
-  const rightBody = Bodies.fromVertices(centerX, centerY, [right], {
-    render: outerEye.render
-  }, true);
-
-  Body.setVelocity(leftBody, { x: -2, y: 5 });
-  Body.setAngularVelocity(leftBody, -0.2);
-  Body.setVelocity(rightBody, { x: 2, y: 5 });
-  Body.setAngularVelocity(rightBody, 0.2);
-
-  World.add(world, [leftBody, rightBody]);
+  World.add(world, [halfLeft, halfRight]);
   setTimeout(showLinks, 1200);
 }
 
@@ -140,9 +146,15 @@ function drawCutLine(progress) {
   ctx.shadowColor = "white";
   ctx.shadowBlur = 20;
   ctx.lineCap = "round";
+
+  const startX = centerX;
+  const startY = centerY - 100;
+  const endX = centerX;
+  const endY = startY + 200 * progress;
+
   ctx.beginPath();
-  ctx.moveTo(centerX, centerY - 100);
-  ctx.lineTo(centerX, centerY + 100 * progress * 2);
+  ctx.moveTo(startX, startY);
+  ctx.lineTo(endX, endY);
   ctx.stroke();
   ctx.restore();
 }
@@ -157,16 +169,21 @@ function drawFlash(alpha) {
   ctx.restore();
 }
 
-render.canvas.addEventListener("click", e => {
+render.canvas.addEventListener("click", (e) => {
   if (explosionTriggered) return;
+
   const rect = render.canvas.getBoundingClientRect();
   const mx = e.clientX - rect.left;
   const my = e.clientY - rect.top;
-  const dist = Math.hypot(mx - centerX, my - centerY);
+  const dx = mx - centerX;
+  const dy = my - centerY;
+  const dist = Math.sqrt(dx * dx + dy * dy);
+
   if (dist <= 100) {
     explosionTriggered = true;
     cutEffectActive = true;
     cutEffectStartTime = performance.now();
+
     setTimeout(() => {
       World.remove(world, [outerEye, pupil]);
       splitEye();
@@ -176,29 +193,115 @@ render.canvas.addEventListener("click", e => {
 
 Events.on(engine, "beforeUpdate", () => {
   if (explosionTriggered) return;
+
   const dx = mouseX - centerX;
   const dy = mouseY - centerY;
   const distance = Math.hypot(dx, dy);
   const dist = Math.min(30, distance);
   const angle = Math.atan2(dy, dx);
-  const shake = distance < 100 ? ((100 - distance) / 100) ** 2 * 15 : 0;
-  const x = centerX + Math.cos(angle) * dist + (Math.random() - 0.5) * 2 * shake;
-  const y = centerY + Math.sin(angle) * dist + (Math.random() - 0.5) * 2 * shake;
+
+  let shake = 0;
+  if (distance < 100) {
+    const intensity = (100 - distance) / 100;
+    shake = intensity ** 2 * 15;
+  }
+
+  const shakeX = (Math.random() - 0.5) * 2 * shake;
+  const shakeY = (Math.random() - 0.5) * 2 * shake;
+
+  const x = centerX + Math.cos(angle) * dist + shakeX;
+  const y = centerY + Math.sin(angle) * dist + shakeY;
   Body.setPosition(pupil, { x, y });
+
   glowTarget = distance < 60 ? 80 : 40;
-  if (smileImg) smileImg.style.opacity = distance <= 100 ? "1" : "0";
+
+  // ➕ Плавное появление картинки
+  if (smileImg) {
+    const opacity = (distance <= 100) ? "1" : "0";
+    smileImg.style.opacity = opacity;
+  }
 });
 
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
-  const elapsed = performance.now() - cutEffectStartTime;
-  if (cutEffectActive && elapsed <= cutDuration) drawCutLine(elapsed / cutDuration);
-  if (cutEffectActive && elapsed <= flashDuration) drawFlash(1 - elapsed / flashDuration);
-  if (cutEffectActive || explosionTriggered) return;
+
+  const now = performance.now();
+  const elapsed = now - cutEffectStartTime;
+
+  if (cutEffectActive || explosionTriggered) {
+    if (cutEffectActive && elapsed <= cutDuration) {
+      const progress = Math.min(elapsed / cutDuration, 1);
+      drawCutLine(progress);
+    }
+
+    if (cutEffectActive && elapsed <= flashDuration) {
+      const alpha = 1 - elapsed / flashDuration;
+      drawFlash(alpha);
+    }
+
+    return;
+  }
+
   pulse += 0.03 * pulseDirection;
-  if (pulse > 1 || pulse < 0) pulseDirection *= -1;
-  pulse = Math.max(0, Math.min(1, pulse));
-  pupil.render.fillStyle = `rgb(${Math.floor(100 + 155 * pulse)},0,0)`;
+  if (pulse > 1 || pulse < 0) {
+    pulseDirection *= -1;
+    pulse = Math.max(0, Math.min(1, pulse));
+  }
+  const red = Math.floor(100 + 155 * pulse);
+  pupil.render.fillStyle = `rgb(${red},0,0)`;
+
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
+
+  ctx.save();
+  ctx.beginPath();
+  ctx.strokeStyle = "black";
+  ctx.lineWidth = 3;
+  ctx.moveTo(pupil.position.x, pupil.position.y - 20);
+  ctx.lineTo(pupil.position.x, pupil.position.y + 20);
+  ctx.stroke();
+  ctx.restore();
+
+  const offset = 1 + Math.random() * 2;
+  ctx.save();
+  ctx.beginPath();
+  ctx.arc(pupil.position.x + offset, pupil.position.y, 35, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(255,0,0,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+
+  ctx.beginPath();
+  ctx.arc(pupil.position.x - offset, pupil.position.y, 35, 0, Math.PI * 2);
+  ctx.strokeStyle = "rgba(0,255,255,0.4)";
+  ctx.lineWidth = 1.5;
+  ctx.stroke();
+  ctx.restore();
+
+  if (Math.random() < 0.05) {
+    ctx.save();
+    ctx.beginPath();
+    ctx.arc(pupil.position.x + 6, pupil.position.y - 6, 35, 0, Math.PI * 2);
+    ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
+    ctx.fill();
+    ctx.restore();
+  }
+
+  if (Math.random() < 0.05) {
+    for (let i = 0; i < 5; i++) {
+      const y = Math.random() * render.canvas.height;
+      ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
+      ctx.fillRect(0, y, render.canvas.width, 2);
+    }
+  }
+
+  if (Math.random() < 0.03) {
+    for (let i = 0; i < 2; i++) {
+      const y = Math.random() * render.canvas.height;
+      const w = render.canvas.width;
+      const h = 5 + Math.random() * 5;
+      const imgData = ctx.getImageData(0, y, w, h);
+      const dx = Math.random() * 10 - 5;
+      ctx.putImageData(imgData, dx, y);
+    }
+  }
 });
