@@ -104,53 +104,32 @@ function showLinks() {
 }
 
 function splitEye() {
+  const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
+    render: {
+      fillStyle: "#000000",
+      strokeStyle: "#ff0000",
+      lineWidth: 4,
+      shadowColor: "#ff0000",
+      shadowBlur: 40
+    }
+  });
 
-  const path = document.querySelector("svg > path");
-  const semicircle = Bodies.fromVertices(
-        centerX, // x
-        centerY,    // y
-        Matter.Svg.pathToVertices(path), // vertexSets
-        {
-          render: {
-            fillStyle: "#000000",
-            strokeStyle: "#ff0000",
-            lineWidth: 4,
-            shadowColor: "#ff0000",
-            shadowBlur: 40
-          }
-        },   
-        true, 
-  
-  );
+  const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
+    render: {
+      fillStyle: "#000000",
+      strokeStyle: "#ff0000",
+      lineWidth: 4,
+      shadowColor: "#ff0000",
+      shadowBlur: 40
+    }
+  });
 
+  Body.setVelocity(halfLeft, { x: -2, y: 5 });
+  Body.setAngularVelocity(halfLeft, -0.2);
+  Body.setVelocity(halfRight, { x: 2, y: 5 });
+  Body.setAngularVelocity(halfRight, 0.2);
 
-
-  // const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
-  //   render: {
-  //     fillStyle: "#000000",
-  //     strokeStyle: "#ff0000",
-  //     lineWidth: 4,
-  //     shadowColor: "#ff0000",
-  //     shadowBlur: 40
-  //   }
-  // });
-
-  // const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
-  //   render: {
-  //     fillStyle: "#000000",
-  //     strokeStyle: "#ff0000",
-  //     lineWidth: 4,
-  //     shadowColor: "#ff0000",
-  //     shadowBlur: 40
-  //   }
-  // });
-
-  Body.setVelocity(semicircle, { x: -2, y: 5 });
-  Body.setAngularVelocity(semicircle, -0.2);
-  Body.setVelocity(semicircle, { x: 2, y: 5 });
-  Body.setAngularVelocity(semicircle, 0.2);
-
-  World.add(world, [semicircle, semicircle]);
+  World.add(world, [halfLeft, halfRight]);
   setTimeout(showLinks, 1200);
 }
 
