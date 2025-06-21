@@ -104,7 +104,8 @@ function showLinks() {
 }
 
 function splitEye() {
-  const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
+  const halfLeft = Bodies.rectangle(centerX - 50, centerY, 100, 50, {
+    chamfer: {radius: [49, 49, 0, 0]},
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -114,7 +115,8 @@ function splitEye() {
     }
   });
 
-  const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
+  const halfRight = Bodies.rectangle(centerX + 50, centerY, 100, 50, {
+    chamfer: {radius: [49, 49, 0, 0]},
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -123,6 +125,7 @@ function splitEye() {
       shadowBlur: 40
     }
   });
+
 
   Body.setVelocity(halfLeft, { x: -2, y: 5 });
   Body.setAngularVelocity(halfLeft, -0.2);
