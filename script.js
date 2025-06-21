@@ -1,4 +1,4 @@
-const { Engine, Render, Runner, Bodies, World, Body, Events } = Matter;
+const { Engine, Render, Runner, Bodies, World, Body, Events, Svg } = Matter;
 
 const engine = Engine.create();
 const { world } = engine;
@@ -37,8 +37,6 @@ World.add(world, [outerEye, pupil]);
 let pulse = 0, pulseDirection = 1;
 let glowTarget = 40, glowCurrent = 40;
 let mouseX = centerX, mouseY = centerY;
-
-// ⬇️ Получаем DOM-картинку
 const smileImg = document.querySelector(".smile");
 
 window.addEventListener("mousemove", e => {
@@ -52,27 +50,28 @@ function showLinks() {
   container.innerHTML = "";
 
   const box = document.createElement("div");
-  box.style.position = "absolute";
-  box.style.top = "50%";
-  box.style.left = "50%";
-  box.style.transform = "translate(-50%, -50%)";
-  box.style.background = "black";
-  box.style.color = "lime";
-  box.style.fontFamily = "monospace";
-  box.style.padding = "20px";
-  box.style.textAlign = "left";
-  box.style.zIndex = "5";
-  box.style.border = "1px solid lime";
+  Object.assign(box.style, {
+    position: "absolute",
+    top: "50%",
+    left: "50%",
+    transform: "translate(-50%, -50%)",
+    background: "black",
+    color: "lime",
+    fontFamily: "monospace",
+    padding: "20px",
+    textAlign: "left",
+    zIndex: "5",
+    border: "1px solid lime"
+  });
   container.appendChild(box);
 
   const links = [
     { text: "Hack The Box", url: "https://app.hackthebox.com/profile/1159833" },
     { text: "GitHub", url: "https://github.com/o0wo0o" },
-    { text: "My Blog", url: "https://o0wo0o.github.io/-_/" }
+    { text: "Notes", url: "https://o0wo0o.github.io/-_/" }
   ];
 
   let index = 0;
-
   function typeLine(link, done) {
     let charIndex = 0;
     const line = document.createElement("div");
@@ -80,11 +79,10 @@ function showLinks() {
 
     function typeChar() {
       if (charIndex < link.text.length) {
-        line.textContent += link.text[charIndex];
-        charIndex++;
+        line.textContent += link.text[charIndex++];
         setTimeout(typeChar, 60);
       } else {
-        line.innerHTML = `<a href='${link.url}' target='_blank' style='color: lime;'>${link.text}</a>`;
+        line.innerHTML = `<a href="${link.url}" target="_blank" style="color: lime;">${link.text}</a>`;
         done();
       }
     }
@@ -93,10 +91,7 @@ function showLinks() {
 
   function nextLink() {
     if (index < links.length) {
-      typeLine(links[index], () => {
-        index++;
-        setTimeout(nextLink, 300);
-      });
+      typeLine(links[index++], nextLink);
     }
   }
 
@@ -104,7 +99,13 @@ function showLinks() {
 }
 
 function splitEye() {
-  const halfLeft = Bodies.trapezoid(centerX - 50, centerY, 100, 200, 0.5, {
+  const svgLeft = document.getElementById("semi-left");
+  const svgRight = document.getElementById("semi-right");
+
+  const vertsLeft = Svg.pathToVertices(svgLeft, 30);
+  const vertsRight = Svg.pathToVertices(svgRight, 30);
+
+  const halfLeft = Bodies.fromVertices(centerX - 0.5, centerY, vertsLeft, {
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -114,7 +115,7 @@ function splitEye() {
     }
   });
 
-  const halfRight = Bodies.trapezoid(centerX + 50, centerY, 100, 200, 0.5, {
+  const halfRight = Bodies.fromVertices(centerX + 0.5, centerY, vertsRight, {
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
@@ -147,14 +148,12 @@ function drawCutLine(progress) {
   ctx.shadowBlur = 20;
   ctx.lineCap = "round";
 
-  const startX = centerX;
   const startY = centerY - 100;
-  const endX = centerX;
   const endY = startY + 200 * progress;
 
   ctx.beginPath();
-  ctx.moveTo(startX, startY);
-  ctx.lineTo(endX, endY);
+  ctx.moveTo(centerX, startY);
+  ctx.lineTo(centerX, endY);
   ctx.stroke();
   ctx.restore();
 }
@@ -169,7 +168,7 @@ function drawFlash(alpha) {
   ctx.restore();
 }
 
-render.canvas.addEventListener("click", (e) => {
+render.canvas.addEventListener("click", e => {
   if (explosionTriggered) return;
 
   const rect = render.canvas.getBoundingClientRect();
@@ -177,9 +176,8 @@ render.canvas.addEventListener("click", (e) => {
   const my = e.clientY - rect.top;
   const dx = mx - centerX;
   const dy = my - centerY;
-  const dist = Math.sqrt(dx * dx + dy * dy);
 
-  if (dist <= 100) {
+  if (Math.sqrt(dx * dx + dy * dy) <= 100) {
     explosionTriggered = true;
     cutEffectActive = true;
     cutEffectStartTime = performance.now();
@@ -200,45 +198,31 @@ Events.on(engine, "beforeUpdate", () => {
   const dist = Math.min(30, distance);
   const angle = Math.atan2(dy, dx);
 
-  let shake = 0;
-  if (distance < 100) {
-    const intensity = (100 - distance) / 100;
-    shake = intensity ** 2 * 15;
-  }
+  const intensity = distance < 100 ? (100 - distance) / 100 : 0;
+  const shake = intensity ** 2 * 15;
 
-  const shakeX = (Math.random() - 0.5) * 2 * shake;
-  const shakeY = (Math.random() - 0.5) * 2 * shake;
-
-  const x = centerX + Math.cos(angle) * dist + shakeX;
-  const y = centerY + Math.sin(angle) * dist + shakeY;
+  const x = centerX + Math.cos(angle) * dist + (Math.random() - 0.5) * 2 * shake;
+  const y = centerY + Math.sin(angle) * dist + (Math.random() - 0.5) * 2 * shake;
   Body.setPosition(pupil, { x, y });
 
   glowTarget = distance < 60 ? 80 : 40;
 
-  // ➕ Плавное появление картинки
   if (smileImg) {
-    const opacity = (distance <= 100) ? "1" : "0";
-    smileImg.style.opacity = opacity;
+    smileImg.style.opacity = (distance <= 100) ? "1" : "0";
   }
 });
 
 Events.on(render, "afterRender", () => {
   const ctx = render.context;
-
-  const now = performance.now();
-  const elapsed = now - cutEffectStartTime;
+  const elapsed = performance.now() - cutEffectStartTime;
 
   if (cutEffectActive || explosionTriggered) {
     if (cutEffectActive && elapsed <= cutDuration) {
-      const progress = Math.min(elapsed / cutDuration, 1);
-      drawCutLine(progress);
+      drawCutLine(Math.min(elapsed / cutDuration, 1));
     }
-
     if (cutEffectActive && elapsed <= flashDuration) {
-      const alpha = 1 - elapsed / flashDuration;
-      drawFlash(alpha);
+      drawFlash(1 - elapsed / flashDuration);
     }
-
     return;
   }
 
@@ -247,61 +231,10 @@ Events.on(render, "afterRender", () => {
     pulseDirection *= -1;
     pulse = Math.max(0, Math.min(1, pulse));
   }
-  const red = Math.floor(100 + 155 * pulse);
-  pupil.render.fillStyle = `rgb(${red},0,0)`;
 
+  pupil.render.fillStyle = `rgb(${Math.floor(100 + 155 * pulse)},0,0)`;
   glowCurrent += (glowTarget - glowCurrent) * 0.1;
   outerEye.render.shadowBlur = glowCurrent;
 
-  ctx.save();
-  ctx.beginPath();
-  ctx.strokeStyle = "black";
-  ctx.lineWidth = 3;
-  ctx.moveTo(pupil.position.x, pupil.position.y - 20);
-  ctx.lineTo(pupil.position.x, pupil.position.y + 20);
-  ctx.stroke();
-  ctx.restore();
-
-  const offset = 1 + Math.random() * 2;
-  ctx.save();
-  ctx.beginPath();
-  ctx.arc(pupil.position.x + offset, pupil.position.y, 35, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(255,0,0,0.4)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-
-  ctx.beginPath();
-  ctx.arc(pupil.position.x - offset, pupil.position.y, 35, 0, Math.PI * 2);
-  ctx.strokeStyle = "rgba(0,255,255,0.4)";
-  ctx.lineWidth = 1.5;
-  ctx.stroke();
-  ctx.restore();
-
-  if (Math.random() < 0.05) {
-    ctx.save();
-    ctx.beginPath();
-    ctx.arc(pupil.position.x + 6, pupil.position.y - 6, 35, 0, Math.PI * 2);
-    ctx.fillStyle = "rgba(255, 0, 0, 0.3)";
-    ctx.fill();
-    ctx.restore();
-  }
-
-  if (Math.random() < 0.05) {
-    for (let i = 0; i < 5; i++) {
-      const y = Math.random() * render.canvas.height;
-      ctx.fillStyle = "rgba(255, 0, 0, 0.15)";
-      ctx.fillRect(0, y, render.canvas.width, 2);
-    }
-  }
-
-  if (Math.random() < 0.03) {
-    for (let i = 0; i < 2; i++) {
-      const y = Math.random() * render.canvas.height;
-      const w = render.canvas.width;
-      const h = 5 + Math.random() * 5;
-      const imgData = ctx.getImageData(0, y, w, h);
-      const dx = Math.random() * 10 - 5;
-      ctx.putImageData(imgData, dx, y);
-    }
-  }
+  // Дополнительные визуальные эффекты по желанию...
 });
