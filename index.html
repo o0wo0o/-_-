@@ -52,12 +52,6 @@
       z-index: 2;
     }
 
-    svg.hidden-svg {
-      display: none;
-      position: absolute;
-      width: 0;
-      height: 0;
-    }
   </style>
 </head>
 <body>
@@ -67,20 +61,13 @@
     <img src="images.png" class="smile" />
   </div>
 
-  <!-- Скрытые SVG пути для полукругов -->
-  <svg class="hidden-svg" xmlns="http://www.w3.org/2000/svg">
-    <!-- Левая половина круга -->
-    <path id="semi-left" d="M 100 200 A 100 100 0 0 1 100 0 L 100 100 Z" />
-    <!-- Правая половина круга -->
-    <path id="semi-right" d="M 100 0 A 100 100 0 0 1 100 200 L 100 100 Z" />
-  </svg>
 
   <!-- Подключение библиотек -->
   <script src="https://cdn.jsdelivr.net/gh/PolyK/polyk@master/polyK.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/schteppe/poly-decomp.js/build/decomp.min.js"></script>
 
-  <!-- Ваши кастомные скрипты -->
+  
   <script src="matrix.js"></script>
   <script src="script.js"></script>
 </body>
