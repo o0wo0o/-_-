@@ -105,40 +105,35 @@ function showLinks() {
 
 function splitEye() {
   const halfLeft = Bodies.rectangle(centerX - 50, centerY, 153, 81, {
-    chamfer: { radius: [80, 80, 0, 0] },
+    chamfer: {radius: [80, 80, 0, 0]},
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
       lineWidth: 4,
-      shadowColor: "#ffffff",
-      shadowBlur: 60
+      shadowColor: "#ff0000",
+      shadowBlur: 40
     }
   });
 
   const halfRight = Bodies.rectangle(centerX + 50, centerY, 153, 81, {
-    chamfer: { radius: [80, 80, 0, 0] },
+    chamfer: {radius: [80, 80, 0, 0]},
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
       lineWidth: 4,
-      shadowColor: "#ffffff",
-      shadowBlur: 60
+      shadowColor: "#ff0000",
+      shadowBlur: 40
     }
   });
 
+
   Body.setVelocity(halfLeft, { x: -2, y: 5 });
-  Body.setAngularVelocity(halfLeft, -0.3);
+  Body.setAngularVelocity(halfLeft, -0.2);
   Body.setVelocity(halfRight, { x: 2, y: 5 });
-  Body.setAngularVelocity(halfRight, 0.3);
+  Body.setAngularVelocity(halfRight, 0.2);
 
   World.add(world, [halfLeft, halfRight]);
-
- 
-  setTimeout(() => {
-    window.setMatrixExplosion(); // смена цвета в matrix.js
-  }, 300);
-
-  setTimeout(showLinks, 1800);
+  setTimeout(showLinks, 1200);
 }
 
 const cutDuration = 300;
