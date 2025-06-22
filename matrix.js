@@ -10,7 +10,7 @@ const drops = Array(columns).fill(1);
 let isExplosion = false;
 
 function drawMatrix() {
-  ctx.fillStyle = isExplosion ? "rgba(255, 255, 255, 0.08)" : "rgba(0, 0, 0, 0.08)";
+  ctx.fillStyle = isExplosion ? "rgba(0, 0, 0, 0.08)" : "rgba(0, 0, 0, 0.08)";
   ctx.fillRect(0, 0, canvas.width, canvas.height);
 
   ctx.font = "14px monospace";
