@@ -155,17 +155,18 @@ function splitEye() {
       shadowBlur: 60
     }
   });
-
+  
+  
   Body.setVelocity(halfLeft, { x: -2, y: 5 });
   Body.setAngularVelocity(halfLeft, -0.3);
   Body.setVelocity(halfRight, { x: 2, y: 5 });
   Body.setAngularVelocity(halfRight, 0.3);
 
+  applyGlitchEffect();
   World.add(world, [halfLeft, halfRight]);
 
   // Глитч-эффект и мерцание
   setTimeout(() => {
-    applyGlitchEffect();
     window.setMatrixExplosion(); // смена цвета в matrix.js
   }, 300);
 
