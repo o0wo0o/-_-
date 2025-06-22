@@ -54,6 +54,17 @@ function showLinks() {
 
   const box = document.createElement("div");
   box.className = "link-box";
+  box.style.position = "absolute";
+  box.style.top = "50%";
+  box.style.left = "50%";
+  box.style.transform = "translate(-50%, -50%)";
+  box.style.background = "black";
+  box.style.border = "1px solid lime";
+  box.style.padding = "20px";
+  box.style.zIndex = "5";
+  box.style.overflow = "hidden";
+  box.style.minWidth = "280px";
+  box.style.boxSizing = "border-box";
   container.appendChild(box);
 
   const links = [
@@ -80,14 +91,12 @@ function showLinks() {
         const delay = 40 + Math.random() * 70;
         setTimeout(typeChar, delay);
       } else {
-        // Replace with anchor
         const a = document.createElement("a");
         a.href = link.url;
         a.target = "_blank";
         a.className = "glitch-link";
         a.dataset.text = link.text;
         a.textContent = link.text;
-
         line.innerHTML = "";
         line.appendChild(a);
         done();
@@ -108,7 +117,6 @@ function showLinks() {
 
   nextLink();
 }
-
 
 function applyGlitchEffect() {
   const ctx = render.context;
