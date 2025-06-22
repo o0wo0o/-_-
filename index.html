@@ -11,7 +11,7 @@
       overflow: hidden;
       background: black;
     }
-  
+
     #matrix-canvas {
       position: fixed;
       top: 0;
@@ -20,7 +20,7 @@
       height: 100vh;
       z-index: 0;
     }
-  
+
     #scene-container {
       position: absolute;
       top: 50%;
@@ -36,17 +36,36 @@
       overflow: hidden;
       transition: all 0.5s ease;
     }
-  
-    /* ➕ Добавляем стиль после взрыва */
+
+    /* 💥 Стили при взрыве */
     #scene-container.exploded {
       border: none;
       box-shadow: none;
     }
-  
+
+    #scene-container.revealed::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: black;
+      animation: scanReveal 1.2s ease-out forwards;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    @keyframes scanReveal {
+      to {
+        height: 0;
+      }
+    }
+
     #scene-container canvas {
       display: block;
     }
-  
+
     .smile {
       position: absolute;
       width: 60px;
@@ -58,15 +77,81 @@
       pointer-events: none;
       z-index: 2;
     }
+
+    /* ✨ Ссылки */
+    .links-container {
+      position: relative;
+      padding: 20px;
+      color: lime;
+      font-family: monospace;
+      white-space: pre;
+      opacity: 0;
+    }
+
+    .links-container.visible {
+      opacity: 1;
+      transition: opacity 0.8s ease 1.0s;
+    }
+
+    .link-line {
+      position: relative;
+      display: block;
+      margin: 8px 0;
+    }
+
+    .cursor {
+      display: inline-block;
+      width: 8px;
+      animation: blink 0.8s steps(2, start) infinite;
+    }
+
+    @keyframes blink {
+      to {
+        opacity: 0;
+      }
+    }
+
+    /* 🔺 Глитч эффект */
+    @keyframes glitch {
+      0% { clip: rect(10px, 9999px, 45px, 0); transform: skew(0.5deg); }
+      20% { clip: rect(85px, 9999px, 140px, 0); transform: skew(-0.5deg); }
+      40% { clip: rect(0px, 9999px, 30px, 0); transform: skew(0.3deg); }
+      60% { clip: rect(50px, 9999px, 90px, 0); transform: skew(0.7deg); }
+      80% { clip: rect(30px, 9999px, 70px, 0); transform: skew(-0.3deg); }
+      100% { clip: rect(10px, 9999px, 45px, 0); transform: skew(0deg); }
+    }
+
+    .link-line.glitch {
+      animation: glitch 1s infinite;
+    }
+
+    /* 🟦 Неоновый hover */
+    .link-line a {
+      color: #0ff;
+      text-decoration: none;
+      transition: all 0.3s ease;
+      text-shadow: 0 0 6px #0ff;
+    }
+
+    .link-line a:hover {
+      color: #fff;
+      text-shadow:
+        0 0 8px #0ff,
+        0 0 16px #0ff,
+        0 0 24px #0ff;
+      transform: scale(1.05);
+    }
   </style>
 </head>
 <body>
   <canvas id="matrix-canvas"></canvas>
+
   <div id="scene-container">
     <img src="images.png" class="smile" />
+    <div class="links-container" id="links"></div>
   </div>
 
-  <!-- Matter.js и зависимые библиотеки -->
+  <!-- Matter.js и зависимости -->
   <script src="https://cdn.jsdelivr.net/npm/matter-js@0.19.0/build/matter.min.js"></script>
   <script src="https://cdn.jsdelivr.net/gh/schteppe/poly-decomp.js/build/decomp.min.js"></script>
 
