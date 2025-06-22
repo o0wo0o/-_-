@@ -134,6 +134,10 @@ function applyGlitchEffect() {
 
 
 function splitEye() {
+  if (smileImg) {
+    smileImg.style.opacity = "0";
+  }
+  
   const halfLeft = Bodies.rectangle(centerX - 50, centerY, 153, 81, {
     chamfer: { radius: [80, 80, 0, 0] },
     render: {
