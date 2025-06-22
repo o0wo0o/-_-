@@ -103,37 +103,73 @@ function showLinks() {
   nextLink();
 }
 
+function applyGlitchEffect() {
+  const ctx = render.context;
+  const canvas = render.canvas;
+
+  for (let i = 0; i < 20; i++) {
+    setTimeout(() => {
+      const x = centerX + (Math.random() - 0.5) * 100;
+      const y = centerY + (Math.random() - 0.5) * 100;
+      const w = 60 + Math.random() * 20;
+      const h = 4 + Math.random() * 8;
+      const dx = Math.random() * 20 - 10;
+      const imgData = ctx.getImageData(x, y, w, h);
+      ctx.putImageData(imgData, x + dx, y);
+    }, i * 30);
+  }
+
+  // "двоение" половинок — кратковременное смещение
+  for (let i = 0; i < 6; i++) {
+    setTimeout(() => {
+      const offset = (Math.random() - 0.5) * 4;
+      ctx.save();
+      ctx.translate(offset, 0);
+      ctx.drawImage(canvas, 0, 0);
+      ctx.restore();
+    }, 500 + i * 50);
+  }
+}
+
+
+
 function splitEye() {
   const halfLeft = Bodies.rectangle(centerX - 50, centerY, 153, 81, {
-    chamfer: {radius: [80, 80, 0, 0]},
+    chamfer: { radius: [80, 80, 0, 0] },
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
       lineWidth: 4,
-      shadowColor: "#ff0000",
-      shadowBlur: 40
+      shadowColor: "#ffffff",
+      shadowBlur: 60
     }
   });
 
   const halfRight = Bodies.rectangle(centerX + 50, centerY, 153, 81, {
-    chamfer: {radius: [80, 80, 0, 0]},
+    chamfer: { radius: [80, 80, 0, 0] },
     render: {
       fillStyle: "#000000",
       strokeStyle: "#ff0000",
       lineWidth: 4,
-      shadowColor: "#ff0000",
-      shadowBlur: 40
+      shadowColor: "#ffffff",
+      shadowBlur: 60
     }
   });
 
-
   Body.setVelocity(halfLeft, { x: -2, y: 5 });
-  Body.setAngularVelocity(halfLeft, -0.2);
+  Body.setAngularVelocity(halfLeft, -0.3);
   Body.setVelocity(halfRight, { x: 2, y: 5 });
-  Body.setAngularVelocity(halfRight, 0.2);
+  Body.setAngularVelocity(halfRight, 0.3);
 
   World.add(world, [halfLeft, halfRight]);
-  setTimeout(showLinks, 1200);
+
+  // Глитч-эффект и мерцание
+  setTimeout(() => {
+    applyGlitchEffect();
+    window.setMatrixExplosion(); // смена цвета в matrix.js
+  }, 300);
+
+  setTimeout(showLinks, 1800);
 }
 
 const cutDuration = 300;
