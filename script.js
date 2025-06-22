@@ -103,33 +103,6 @@ function showLinks() {
   nextLink();
 }
 
-function applyGlitchEffect() {
-  const ctx = render.context;
-  const canvas = render.canvas;
-
-  for (let i = 0; i < 20; i++) {
-    setTimeout(() => {
-      const x = centerX + (Math.random() - 0.5) * 100;
-      const y = centerY + (Math.random() - 0.5) * 100;
-      const w = 60 + Math.random() * 20;
-      const h = 4 + Math.random() * 8;
-      const dx = Math.random() * 20 - 10;
-      const imgData = ctx.getImageData(x, y, w, h);
-      ctx.putImageData(imgData, x + dx, y);
-    }, i * 30);
-  }
-
-  for (let i = 0; i < 6; i++) {
-    setTimeout(() => {
-      const offset = (Math.random() - 0.5) * 4;
-      ctx.save();
-      ctx.translate(offset, 0);
-      ctx.drawImage(canvas, 0, 0);
-      ctx.restore();
-    }, 500 + i * 50);
-  }
-}
-
 function splitEye() {
   const halfLeft = Bodies.rectangle(centerX - 50, centerY, 153, 81, {
     chamfer: { radius: [80, 80, 0, 0] },
@@ -162,8 +135,7 @@ function splitEye() {
 
  
   setTimeout(() => {
-    applyGlitchEffect();
-    window.setMatrixExplosion(); 
+    window.setMatrixExplosion(); // смена цвета в matrix.js
   }, 300);
 
   setTimeout(showLinks, 1800);
@@ -341,6 +313,3 @@ Events.on(render, "afterRender", () => {
     }
   }
 });
-
-
-
