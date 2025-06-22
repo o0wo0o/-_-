@@ -11,7 +11,7 @@
       overflow: hidden;
       background: black;
     }
-  
+
     #matrix-canvas {
       position: fixed;
       top: 0;
@@ -20,7 +20,7 @@
       height: 100vh;
       z-index: 0;
     }
-  
+
     #scene-container {
       position: absolute;
       top: 50%;
@@ -34,19 +34,18 @@
       box-shadow: 0 0 40px rgba(255, 0, 0, 0.3);
       pointer-events: auto;
       overflow: hidden;
-      transition: all 0.5s ease;
+      transition: all 0.8s ease;
     }
-  
-    /* ➕ Добавляем стиль после взрыва */
+
     #scene-container.exploded {
       border: none;
       box-shadow: none;
     }
-  
+
     #scene-container canvas {
       display: block;
     }
-  
+
     .smile {
       position: absolute;
       width: 60px;
@@ -57,6 +56,80 @@
       transition: opacity 0.6s ease;
       pointer-events: none;
       z-index: 2;
+    }
+
+    /* ✨ Ссылки */
+    .link-box {
+      position: relative;
+      background: black;
+      color: lime;
+      font-family: monospace;
+      padding: 20px;
+      text-align: left;
+      border: 1px solid lime;
+      overflow: hidden;
+      mask-image: linear-gradient(to bottom, transparent 0%, black 20%, black 80%, transparent 100%);
+      animation: revealMask 2s ease-out forwards;
+    }
+
+    @keyframes revealMask {
+      from {
+        mask-position: 0 -100%;
+        mask-size: 100% 200%;
+      }
+      to {
+        mask-position: 0 100%;
+        mask-size: 100% 200%;
+      }
+    }
+
+    .glitch-link {
+      display: inline-block;
+      position: relative;
+      color: #0ff;
+      text-decoration: none;
+      transition: transform 0.2s ease, filter 0.2s ease;
+    }
+
+    .glitch-link::before,
+    .glitch-link::after {
+      content: attr(data-text);
+      position: absolute;
+      left: 0;
+      width: 100%;
+      overflow: hidden;
+      white-space: nowrap;
+      color: #f0f;
+      opacity: 0.3;
+      pointer-events: none;
+    }
+
+    .glitch-link::before {
+      top: -1px;
+      left: 1px;
+    }
+
+    .glitch-link::after {
+      top: 1px;
+      left: -1px;
+    }
+
+    .glitch-link:hover {
+      transform: scale(1.05);
+      filter: drop-shadow(0 0 6px #0ff);
+    }
+
+    /* | курсор */
+    .cursor {
+      display: inline-block;
+      width: 10px;
+      color: lime;
+      animation: blink 1s infinite;
+    }
+
+    @keyframes blink {
+      0%, 50% { opacity: 1; }
+      51%, 100% { opacity: 0; }
     }
   </style>
 </head>

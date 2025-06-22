@@ -49,20 +49,11 @@ window.addEventListener("mousemove", e => {
 
 function showLinks() {
   const container = document.getElementById("scene-container");
+  container.classList.add("exploded");
   container.innerHTML = "";
 
   const box = document.createElement("div");
-  box.style.position = "absolute";
-  box.style.top = "50%";
-  box.style.left = "50%";
-  box.style.transform = "translate(-50%, -50%)";
-  box.style.background = "black";
-  box.style.color = "lime";
-  box.style.fontFamily = "monospace";
-  box.style.padding = "20px";
-  box.style.textAlign = "left";
-  box.style.zIndex = "5";
-  box.style.border = "1px solid lime";
+  box.className = "link-box";
   container.appendChild(box);
 
   const links = [
@@ -76,19 +67,34 @@ function showLinks() {
   function typeLine(link, done) {
     let charIndex = 0;
     const line = document.createElement("div");
+    const cursor = document.createElement("span");
+    cursor.className = "cursor";
+    cursor.textContent = "|";
+    line.appendChild(cursor);
     box.appendChild(line);
 
     function typeChar() {
       if (charIndex < link.text.length) {
-        line.textContent += link.text[charIndex];
+        cursor.before(link.text[charIndex]);
         charIndex++;
-        setTimeout(typeChar, 60);
+        const delay = 40 + Math.random() * 70;
+        setTimeout(typeChar, delay);
       } else {
-        line.innerHTML = `<a href='${link.url}' target='_blank' style='color: lime;'>${link.text}</a>`;
+        // Replace with anchor
+        const a = document.createElement("a");
+        a.href = link.url;
+        a.target = "_blank";
+        a.className = "glitch-link";
+        a.dataset.text = link.text;
+        a.textContent = link.text;
+
+        line.innerHTML = "";
+        line.appendChild(a);
         done();
       }
     }
-    typeChar();
+
+    setTimeout(typeChar, 300);
   }
 
   function nextLink() {
@@ -102,6 +108,7 @@ function showLinks() {
 
   nextLink();
 }
+
 
 function applyGlitchEffect() {
   const ctx = render.context;
@@ -137,7 +144,7 @@ function splitEye() {
   if (smileImg) {
     smileImg.style.opacity = "0";
   }
-  
+
   const halfLeft = Bodies.rectangle(centerX - 50, centerY, 153, 81, {
     chamfer: { radius: [80, 80, 0, 0] },
     render: {
