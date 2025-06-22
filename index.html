@@ -11,7 +11,7 @@
       overflow: hidden;
       background: black;
     }
-
+  
     #matrix-canvas {
       position: fixed;
       top: 0;
@@ -20,7 +20,7 @@
       height: 100vh;
       z-index: 0;
     }
-
+  
     #scene-container {
       position: absolute;
       top: 50%;
@@ -34,12 +34,19 @@
       box-shadow: 0 0 40px rgba(255, 0, 0, 0.3);
       pointer-events: auto;
       overflow: hidden;
+      transition: all 0.5s ease;
     }
-
+  
+    /* ➕ Добавляем стиль после взрыва */
+    #scene-container.exploded {
+      border: none;
+      box-shadow: none;
+    }
+  
     #scene-container canvas {
       display: block;
     }
-
+  
     .smile {
       position: absolute;
       width: 60px;

@@ -35,4 +35,5 @@ drawMatrix();
 
 window.setMatrixExplosion = function () {
   isExplosion = true;
+  document.getElementById("scene-container").classList.add("exploded");
 };
