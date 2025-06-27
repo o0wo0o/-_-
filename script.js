@@ -70,7 +70,7 @@ function showLinks() {
   const links = [
     { text: "Hack The Box", url: "https://app.hackthebox.com/profile/1159833" },
     { text: "GitHub", url: "https://github.com/o0wo0o" },
-    { text: "Notes", url: "https://o0wo0o.github.io/-_/" }
+    { text: "Notes", url: "https://o0wo0o.github.io/n0tes" }
   ];
 
   let index = 0;
